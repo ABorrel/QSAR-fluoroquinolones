@@ -116,7 +116,7 @@ PCAplot = function (din, path_result){
   warnings ()
   dev.off()
   
-  colpoint <- colorRampPalette(c("blue", "red"))
+  colpoint <- colorRampPalette(c("red", "lightgreen"))
   
   png (paste (path_result, "_color.png", sep = ""), 1700, 1500)
   factor = factorACP (data_plot, cp)

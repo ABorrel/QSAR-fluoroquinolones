@@ -1,10 +1,12 @@
 from os import listdir, remove, makedirs
 
-PR_REF = "/home/aborrel/imitanib/"
-PR_RESULT = "/home/aborrel/imitanib/results/"
-PR_TEMP3D = "/home/aborrel/imitanib/results/temp3D/"
-PR_COMPOUNDS = "/home/aborrel/imitanib/results/compounds/"
-PR_ANALYSIS = "/home/aborrel/imitanib/results/analysis/"
+PR_REF = "/home/aborrel/fluoroquinolones/"
+PR_RESULT = "/home/aborrel/fluoroquinolones/results/"
+PR_TEMP3D = "/home/aborrel/fluoroquinolones/results/temp3D/"
+PR_COMPOUNDS = "/home/aborrel/fluoroquinolones/results/compounds/"
+PR_ANALYSIS = "/home/aborrel/fluoroquinolones/results/analysis/"
+PR_DESC = "/home/aborrel/fluoroquinolones/results/desc/"
+
 
 
 def cleanFolder(prin=PR_TEMP3D):
@@ -14,7 +16,6 @@ def cleanFolder(prin=PR_TEMP3D):
             # problem with folder
             remove(prin + filin)
     return prin
-
 
 def analyses(psub):
 

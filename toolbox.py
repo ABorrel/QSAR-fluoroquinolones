@@ -20,6 +20,11 @@ def mergeDict(l_dict):
 
 
 
+def convertUg(valin, unit):
+
+    if unit == "mg l-1":
+        return float(valin)*1000
+
 
 def convertUnit(l_values, l_units):
     """Convert list of affinity un uM"""

@@ -13,53 +13,77 @@ source("dendocircular.R")
 args <- commandArgs(TRUE)
 pdesc = args[1]
 pdata = args[2] #to take affinity
-valcor = as.double(args[3])
-prout = args[4]
+prout = args[3]
+valcor = as.double(args[4])
 plotPCA = args[5]
 corMatrix = args[6]
 histplot = args[7]
 circularDendo = args[8]
+logaff = args[9]
 
-pdesc = "/home/aborrel/imitanib/results/analysis/desc/tableDesc.csv"
-pdata = "/home/aborrel/imitanib/CHEMBL/bioactivity-TK-ABL_CHEMBL1862_filtered.txt"
-prout = "/home/aborrel/imitanib/results/analysis/desc/"
+#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Staphylococcus-aureus.csv"
+#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Staphylococcus-aureus.csv"
+#prout = "/home/aborrel/fluoroquinolones/results/desc/Staphylococcus-aureus" 
 
-plotPCA = 0
-corMatrix = 0
-histplot = 0
-circularDendo = 1
+#plotPCA = 1
+#corMatrix = 0
+#histplot = 1
+#circularDendo = 1
+#valcor = 0.70
 
 
-valcor = 0.70
-
-# Opening
-ddata = read.csv(pdata, sep = "\t", header = TRUE)
-#print(dim(ddata))
-daffinity = ddata[,c("CMPD_CHEMBLID", "PCHEMBL_VALUE")]
-#print (daffinity)
-#lcolaff <- colorRampPalette(c("white", "red"))
-#lcolaff = lcolaff[dim(daffinity)[1]]
-orderaff = order(daffinity[,2],decreasing=F)
-#print (orderaff)
-
-daffinity = as.data.frame(daffinity[orderaff,])
-rownames(daffinity) = daffinity[,1]
-#daffinity = as.data.frame(daffinity[,-1])
-
-# desc
+# Process descriptors matrix #
+##############################
 dglobal = openData(pdesc, valcor, prout, c(1,2))
-#print (dim(dglobal[[1]]))
-
 dglobal = dglobal[[1]]
+
 rownames(dglobal) = dglobal[,1]
 dglobal = dglobal[,-1]
 dglobal = dglobal[,-1]
-# order with affinity
+
+# order with affinity #
+#######################
+# Opening
+ddata = read.table(pdata, sep = "\t", header = TRUE)
+print(dim(ddata))
+daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")]
+
+#print(dim(daffinity))
+#print(dim(dglobal))
+
+
+
+if(logaff == 1){
+  daffinity[,2] = log10(daffinity[,2])
+}
+
+
+rownames(daffinity) = daffinity[,1]
+
+
+ord = NULL
+for(i in seq(1,dim(dglobal)[1])){
+  ipos = which(daffinity[,1] == rownames(dglobal)[i])
+  ord = append (ord,ipos)
+}
+
+print (ord)
+daffinity = daffinity[ord,]
+
+
+orderaff = order(daffinity[,2],decreasing=T)
+daffinity = daffinity[orderaff,]
+
+
 dglobal = dglobal[orderaff,]
 #print(rownames(dglobal))
 #print(colnames(dglobal))
 
-#d1D_data = delnohomogeniousdistribution(d1D_data, 75)
+#print(dim(dglobal))
+#print(dim(daffinity))
+
+#print(rownames(dglobal))
+#print(rownames(daffinity))
 
 if (corMatrix == 1){
   cardMatrixCor(cor(dglobal), paste(prout, "matrixCor_", valcor, sep = ""), 6)
@@ -70,7 +94,7 @@ if(plotPCA == 1){
 }
 
 if (histplot == 1){
-  histDataOne(data1 = dglobal, paste(prout, "histDesc_", valcor, ".pdf", sep = ""))
+  histDataOne(data1 = cbind(dglobal, daffinity[,2]), paste(prout, "histDesc_", valcor, ".pdf", sep = ""))
 }
 
 if (circularDendo == 1){

@@ -1,4 +1,4 @@
-from numpy.f2py.auxfuncs import l_and
+from os import listdir
 
 import tableParse
 import liganddescriptors
@@ -33,30 +33,26 @@ def CleanCHEMBLFile(pfilin, pfilout):
 
 
 
-
-
-
-
-def MolecularDesc(ltable, pfilout, plog):
+def MolecularDesc(dtable, pfilout, plog):
 
     logfile = open(plog, "w")
 
-    for compound in ltable:
-        dcompound = liganddescriptors.Descriptors(compound, logfile)
+    for orga in dtable.keys():
+        pfiloutorga = pfilout + "desc_" + orga.replace(" ", "-") + ".csv"
 
-        if dcompound.log == "ERROR":
-            continue
+        for dcompound in dtable[orga]:
+            desc = liganddescriptors.Descriptors(dcompound, writecheck=0, logfile=logfile)
+            desc.get_descriptorOD1D()
+            desc.get_descriptor2D()
 
-        dcompound.get_descriptorOD1D()
-        dcompound.get_descriptor2D()
+            if desc.log == "ERROR":
+                continue
+            desc.writeTablesDesc(pfiloutorga)
 
-        dcompound.writeTablesDesc(pfilout)
 
+def AnalyseDesc(pdesc, pdata, prout, PCA="1", dendo="1", cormatrix="1", hist="1", corcoef=0.0, logaff="0"):
 
-def Analyse(pdesc, pdata, PCA=1, dendo=1, corcoef=0.0):
-
-    if PCA==1:
-        runExternalSoft.PCAplot(pdesc, pdata, corcoef)
+    runExternalSoft.DescAnalysis(pdesc, pdata, prout, corcoef, PCA, cormatrix, hist, dendo, logaff)
 
     return
 
@@ -67,10 +63,31 @@ def Analyse(pdesc, pdata, PCA=1, dendo=1, corcoef=0.0):
 pCHEMBL = "/home/aborrel/fluoroquinolones/compound-bioactiveCHEMBL.txt"
 pCHEMBLClean = "/home/aborrel/fluoroquinolones/compound_filtered_target.txt"
 
-pCHEMBLCleanMIC = "/home/aborrel/fluoroquinolones/compound_filtered_MIC.txt"
+pCHEMBLCleanMIC = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC.txt"
+
 
 #ltab = CleanCHEMBLFile(pCHEMBL, pCHEMBLClean)
-ltab = CleanCHEMBLFile(pCHEMBL, pCHEMBLCleanMIC)
+#dtab = CleanCHEMBLFile(pCHEMBL, pCHEMBLCleanMIC)
+
+pdesc = pathFolder.PR_DESC
+plog = pathFolder.PR_DESC + "log.txt"
+
+#MolecularDesc(dtab.tableorgafull, pdesc, plog)
+
+lfiledesorga = listdir(pathFolder.PR_DESC)
+for fileorga in lfiledesorga:
+    pfiledesc = pathFolder.PR_DESC + fileorga
+    print fileorga[-3:]
+    if fileorga[-3:] == "csv":
+        orga = fileorga.split("_")[1][:-4]
+        AnalyseDesc(pfiledesc, pCHEMBLCleanMIC[:-4] + "_MIC_" + orga + ".csv", pathFolder.PR_DESC + orga, corcoef=0.7,
+                    logaff=1)
+
+
+
+
+
+
 
 #lcompound = [ltab[i]["CMPD_CHEMBLID"] for i in range(0,len(ltab))]
 #lcompound = list(set(lcompound))

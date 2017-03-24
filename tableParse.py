@@ -78,7 +78,7 @@ class CHEMBL:
                 i += 1
 
     def getOnlyMIC(self):
-
+        """Take only MIC and MIC in uM"""
         if not "table" in dir(self):
             self.parseCHEMBLFile()
 
@@ -91,6 +91,10 @@ class CHEMBL:
                 imax = imax - 1
                 continue
             else:
+                if row["PUBLISHED_UNITS"] != "ug ml-1" and row["PUBLISHED_UNITS"] != "mg l-1":
+                    del self.table[i]
+                    imax = imax - 1
+                    continue
                 i += 1
 
 
@@ -265,7 +269,7 @@ class CHEMBL:
             if organism == "":
                 continue
             else:
-                if dcompound["PUBLISHED_VALUE"] == "" or dcompound["PUBLISHED_TYPE"]!= "MIC":
+                if dcompound["PUBLISHED_VALUE"] == "" or dcompound["PUBLISHED_TYPE"] != "MIC":
                     continue
                 if not organism in dorga.keys():
                     dorga[organism] = 0
@@ -343,12 +347,17 @@ class CHEMBL:
         #print len(lcompoundID)
         #print lcompoundID
 
+
+        dout = {}
         for orga in self.tablebyorga.keys():
-            pfilout = prout + str(orga) + ".csv"
+            pfilout = prout + str(orga.replace(" ", "-")) + ".csv"
             filout = open(pfilout, "w")
-            lheader = self.tablebyorga[orga][0].keys()
+            lheader = ["CMPD_CHEMBLID", "STANDARD_VALUE"]
             print lheader
             filout.write("\t".join(lheader) + "\n")
+
+            if not orga in dout.keys():
+                dout[orga] = []
 
             for compoundID in lcompoundID:
                 ltemp = []
@@ -369,9 +378,11 @@ class CHEMBL:
                     compoundtemp["STANDARD_VALUE"] = mean(lvalstandard)
                 else:
                     compoundtemp = ltemp[0]
+                dout[orga].append(compoundtemp)
                 filout.write("\t".join(str(compoundtemp[k]) for k in lheader) + "\n")
             filout.close()
 
+        self.tableorgafull = dout
 
     def writeTable(self, pfilout):
 

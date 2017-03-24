@@ -85,3 +85,12 @@ def PCAplot(pfildesc, pfildata, corcoef, prout):
     system(cmdplotPCA)
 
     return
+
+
+def DescAnalysis(pdesc, paffinity, prout, valcor, PCA, corMatrix, hist, dendo, logaff):
+
+    cmdVisu = "./visualization.R " + str(pdesc) + " " + str(paffinity) + " " + str(prout) + " " + str(valcor) + " " + \
+        str(PCA) + " " + str(corMatrix) + " " + str(hist) + " " + str(dendo) + " " + str(logaff)
+
+    print cmdVisu
+    system(cmdVisu)

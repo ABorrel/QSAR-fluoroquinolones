@@ -378,7 +378,7 @@ openData = function (pfilin, valcor, prout, vexclude){
 	desc = na.omit(desc)
   #print (dim(desc))
   cexclude = desc[,vexclude]
-  #print(dim(desc))
+  #print(head(cexclude))
   desc = desc[,-vexclude]
   
 	# dell when sd = 0
@@ -399,7 +399,11 @@ openData = function (pfilin, valcor, prout, vexclude){
 		#print (as.factor (sd_0))
 		#desc = desc[,-sd_0]
 		desc=subset(desc,select=-sd_0)
-		cexclude = subset(cexclude,select=-sd_0)
+		#sd_0 = which (sd_desc == 0)
+		#if (length(sd_0) != 0){
+		#  desc=subset(desc,select=-sd_0)
+		#}
+		#cexclude = cexclude[-sd_0,]
 		#print(dim(desc_new))
 	}
 	if (valcor != 0){
@@ -411,8 +415,7 @@ openData = function (pfilin, valcor, prout, vexclude){
 		desc = desc[,descriptor]
 		#print (dim(desc))
 	}
-  desc = cbind(cexclude, desc)
-  #print(dim(desc))
+	desc = cbind(cexclude, desc)
 	return (list((desc),colnames (desc)))
 }
 
