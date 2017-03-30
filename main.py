@@ -85,10 +85,6 @@ for fileorga in lfiledesorga:
 
 
 
-
-
-
-
 #lcompound = [ltab[i]["CMPD_CHEMBLID"] for i in range(0,len(ltab))]
 #lcompound = list(set(lcompound))
 #print len(lcompound), "NB different"
@@ -96,4 +92,8 @@ for fileorga in lfiledesorga:
 #pdesc = pathFolder.analyses(psub="desc") + "tableDesc.csv"
 #plog = pathFolder.analyses(psub="desc") + "log.txt"
 #MolecularDesc(ltab, pdesc, plog)
+
+
+
+
 

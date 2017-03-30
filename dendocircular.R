@@ -3,7 +3,31 @@ library(ape)
 library(phangorn)
 library(ggtree)
 
+
+
 dendogramCircle = function(ddes, daff, pfilout){
+
+  #print (daff)
+  matTrans1 <- scale(ddes)
+  d <- dist(matTrans1, method = "euc")
+  tupgma2 <- upgma(d, method="ward.D2")
+  legend.title = "ODavg"
+
+  t4 <- ggtree(tupgma2, layout="circular", size=1)
+  t4 <- t4 %<+% daff + geom_text(aes(color=Odavg, label=label, angle=angle, fontface="bold"), hjust=-0.15, size=1.3) +
+    geom_tippoint(aes(color=Odavg), alpha=0.75, size=2)+
+    scale_color_continuous(name='Odavg', low='red', high='lightgreen') +
+    theme(legend.position="right")+
+    theme(plot.margin = unit(c(0,0,0,0), "cm")) +
+  geom_treescale(x = 20, y = 20, width = NULL, offset = NULL,
+                 color = "white", linesize = 1E-100, fontsize = 1E-100)
+  print(t4)
+  ggsave(pfilout, dpi=300, height = 6, width = 7)
+
+}
+
+
+dendogramCircle2 = function(ddes, daff, pfilout){
   
   #print (daff)
   matTrans1 <- scale(ddes)

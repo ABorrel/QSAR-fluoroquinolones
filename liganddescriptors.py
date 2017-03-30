@@ -30,7 +30,7 @@ class Descriptors:
         # if SMILES, load using SMILES code
         if not kSMILES in dcompound.keys():
             try:
-                smile = toolbox.babelConvertSDFtoSMILE(dcompound["sdf"])
+                smile = runExternalSoft.babelConvertSDFtoSMILE(dcompound["sdf"])
                 self.compound[kSMILES] = smile
             except:
                 print "ERROR INPUT SDF - l33"

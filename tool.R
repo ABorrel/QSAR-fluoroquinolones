@@ -133,8 +133,9 @@ histDataOne = function (data1, path_pdf){
 	nb_descriptor = dim (data1)[2]
 	pdf (path_pdf)
 	for (i_descriptor in 1:nb_descriptor){
-		hist(data1[,i_descriptor], col = "red", cex.names = 1.5, freq = TRUE, cex.axis = 1.5, main = "", xlab = "", ylab = "", breaks = 100)
-		title(main = colnames (data1)[i_descriptor], cex.main = 1.5, ylab = "Frequency", cex.lab = 1.5, sub=paste("Means:", round(mean(data1[,i_descriptor]),3), "// SD:", round(sd(data1[,i_descriptor]),3), " // Med:",round(median(data1[,i_descriptor]),3), " // Min:", round(min(data1[,i_descriptor]),3), " // Max:", round(max(data1[,i_descriptor]),3)))
+		d = na.omit(data1[,i_descriptor])
+		hist(d, col = "red", cex.names = 1.5, freq = TRUE, cex.axis = 1.5, main = "", xlab = "", ylab = "", breaks = 100)
+		title(main = colnames (data1)[i_descriptor], cex.main = 1.5, ylab = "Frequency", cex.lab = 1.5, sub=paste("Means:", round(mean(d),3), "// SD:", round(sd(d),3), " // Med:",round(median(d),3), " // Min:", round(min(d),3), " // Max:", round(max(d),3)))
 	}
 	dev.off()
 }
@@ -455,6 +456,13 @@ is.integer0 <- function(x)
 }
 
 
+
+eucdist = function(x1, x2, y1, y2){
+  distout = sqrt((x1-x2)^2 + (y1-y2)^2)
+  return (distout)
+}
+
+
 delnohomogeniousdistribution = function(din, cutoff = 80){
 
   countMax = dim(din)[1]*cutoff/100  
@@ -479,60 +487,6 @@ delnohomogeniousdistribution = function(din, cutoff = 80){
   return(din)
 }
 
-###############################
-# divise the dataset in folds #
-###############################
-
-samplingDataNgroup = function (t_din, i_nb_group, s_nameclass){
-
-	# divise two classes
-	v_class = as.factor(t_din[,s_nameclass])
-	t_dc0 = t_din [which(v_class == 0),]
-	t_dc1 = t_din [which(v_class == 1),]
-
-
-	# sample data
-	v_sampledc0 = sample (dim (t_dc0)[1])
-	v_sampledc1 = sample (dim (t_dc1)[1])
-
-	# ind limit
-	i_limitc0 = as.integer (dim(t_dc0)[1] / i_nb_group)
-	i_limitc1 = as.integer (dim(t_dc1)[1] / i_nb_group)
-
-	#print (i_limitc0)
-	#print (i_limitc1)
-
-	output = list ()
-	for (g in 1:i_nb_group){
-		#print (g)
-		# start selct 1
-		if (g == 1 ){
-			t_group = rbind (t_dc0[v_sampledc0[1:i_limitc0],], t_dc1[v_sampledc1[1:i_limitc1],])
-		}
-		# last end to number of coulumn
-		else if (g == i_nb_group){
-			#print ("inf")
-			#print (i_limitc0 * (g-1) + 1)
-			#print (i_limitc1 * (g-1) + 1)
-			#print ("sup")
-			#print (length (v_sampledc0))
-			#print (length (v_sampledc1))
-			#print ("**IC**")
-			#print ((i_limitc0 * (g-1) + 1):(length (v_sampledc0)))
-			#print ((i_limitc1 * (g-1) + 1):(length (v_sampledc1)))
-
-
-			t_group = rbind (t_dc0[v_sampledc0[((i_limitc0 * (g-1) + 1):(length (v_sampledc0)))],], t_dc1[(v_sampledc1[(i_limitc1 * (g-1) + 1):(length (v_sampledc1))]),])
-		}
-		else{
-			t_group = rbind (t_dc0[(v_sampledc0[(i_limitc0 * (g-1) + 1):(i_limitc0 * g)]),], t_dc1[(v_sampledc1[(i_limitc1 * (g-1) + 1):(i_limitc1 * g)]),])
-		}
-		# append list
-		output[[g]] = t_group
-	}
-
-	return (output)
-}
 
 
 #######################

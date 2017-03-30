@@ -41,12 +41,15 @@ rownames(dglobal) = dglobal[,1]
 dglobal = dglobal[,-1]
 dglobal = dglobal[,-1]
 
+#######################
 # order with affinity #
 #######################
 # Opening
 ddata = read.table(pdata, sep = "\t", header = TRUE)
 print(dim(ddata))
-daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")]
+#daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+daffinity = ddata[,c("ID", "Odavg")]
+
 
 #print(dim(daffinity))
 #print(dim(dglobal))
