@@ -50,6 +50,7 @@ print(dim(ddata))
 #daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 daffinity = ddata[,c("ID", "Odavg")]
 
+daffinity[which(daffinity[,2]>20),2] = 20
 
 #print(dim(daffinity))
 #print(dim(dglobal))

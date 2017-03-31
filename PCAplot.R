@@ -104,7 +104,7 @@ PCAplot = function (din, path_result){
   #col.desc = colorDesc(colnames(din))
   
   col.desc = "black"
-  colpoint <- colorRampPalette(c("red", "lightgreen"))
+  colpoint <- colorRampPalette(c("lightgreen", "red"))
   
   print(col.desc)
   
@@ -114,7 +114,7 @@ PCAplot = function (din, path_result){
   color_arrow = col.desc[rownames(cp)]
   par(mar=c(8,8,8,8))
   plot(data_plot[,1],data_plot[,2], pch=20, main = paste (var_cap[1],var_cap[2], sep = "_" ), xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 4, type = "n")
-  text (data_plot[,1],data_plot[,2], label = rownames (din), cex = 1.5, col = colpoint(dim(data_plot)[1]))
+  text (data_plot[,1],data_plot[,2], label = rownames (din), cex = 2.5, col = colpoint(dim(data_plot)[1]))
   abline(h=0,v=0)
   warnings ()
   dev.off()

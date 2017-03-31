@@ -43,5 +43,5 @@ plog = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/log.txt"
 
 
 
-runExternalSoft.DescAnalysis(pdesc, paff, prdesc, valcor=0.7, PCA=1, corMatrix=1, hist=1, dendo=1, logaff=0)
+runExternalSoft.DescAnalysis(pdesc, paff, prdesc, valcor=0.9, PCA=1, corMatrix=1, hist=1, dendo=1, logaff=0)
 

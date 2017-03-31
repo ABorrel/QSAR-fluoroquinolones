@@ -241,6 +241,23 @@ vrmsep = function(dreal, dpredict){
   
 }
 
+
+
+calR2 = function(dreal, dpredict){
+  
+  M = mean(dreal)
+  SCEy = 0
+  SCEtot = 0
+  for (i in seq(1, length(dreal))){
+    #print (i)
+    SCEy = SCEy + (dreal[i] - dpredict[i])*(dreal[i] - dpredict[i])
+    SCEtot = SCEtot + (dreal[i] - M)*(dreal[i] - M)
+  }
+  return (1 - (SCEy/SCEtot))
+}
+
+
+
 ###############################
 # divise the dataset in folds #
 ###############################
@@ -408,10 +425,11 @@ PCRCV = function(lfolds, prout){
   # performance in CV and number of cmp
   # return best number of cmp
   
-  maxCp = dim(lfolds[[1]])[2]
+  maxCp = dim(lfolds[[1]])[2] - 1
   
   vcpRMSEP = NULL
   vcpR2 = NULL
+  vcpcor = NULL
   for (cp in seq(1,maxCp)){
     i = 1
     imax = length(lfolds)
@@ -437,18 +455,21 @@ PCRCV = function(lfolds, prout){
     
     corpred = cor(vreal, vpred)
     rmsepcp = vrmsep(vreal, vpred)
+    R2cp = calR2(vreal, vpred)
     
-    vcpR2 = append(vcpR2, corpred)
+    vcpcor = append(vcpcor, corpred)
     vcpRMSEP = append(vcpRMSEP,rmsepcp)
+    vcpR2 = append(vcpR2, R2cp)
   }
   
   #print(vcpR2)
   #print (vcpRMSEP)
   
-  png(width = 960, height = 480, filename = paste(prout ,"CVpcr.png", sep = ""))
-  par(mfrow = c(1,2))
+  png(width = 960, height = 960, filename = paste(prout ,"CVpcr.png", sep = ""))
+  par(mfrow = c(2,2))
   plot(seq(1,length(vcpR2)), vcpR2, type = "l", cex = 3, main = paste("R2 by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "R2")
   plot(seq(1,length(vcpRMSEP)), vcpRMSEP, type = "l", cex = 3, main = paste("RMSEP by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "RMSEP")
+  plot(seq(1,length(vcpcor)), vcpcor, type = "l", cex = 3, main = paste("Cor val by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "Cor")
   dev.off()
   
   # optimal number of component
@@ -462,7 +483,7 @@ PCRCV = function(lfolds, prout){
   
   print("****PCR in CV****")
   print(paste("Optimal component: ", nbCPoptimun, sep = ""))
-  print(paste("Perf optimal in CV: RMSEP=", vcpRMSEP[nbCPoptimun], " R2=", vcpR2[nbCPoptimun], sep = ""))
+  print(paste("Perf optimal in CV: RMSEP=", vcpRMSEP[nbCPoptimun], " Corval=", vcpcor[nbCPoptimun], " R2val=", vcpR2[nbCPoptimun], sep = ""))
   
   return (nbCPoptimun)
   
@@ -476,22 +497,26 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
   predpcrtest = predict(modelpcr, ncomp = nbcp, newdata = dtest)
   predpcrtrain = predict(modelpcr, ncomp = nbcp, newdata = dtrain)
   
-  r2train = cor(dtrain[,"Aff"], predpcrtrain)
-  r2test = cor(dtest[,"Aff"], predpcrtest)
+  cortrain = cor(dtrain[,"Aff"], predpcrtrain)
+  cortest = cor(dtest[,"Aff"], predpcrtest)
   
   rmseptrain = vrmsep(dtrain[,"Aff"], predpcrtrain)
   rmseptest = vrmsep(dtest[,"Aff"], predpcrtest)
   
+  R2train = calR2(dtrain[,"Aff"], predpcrtrain)
+  R2test = calR2(dtest[,"Aff"], predpcrtest)
   
   print("****PCR model****")
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim = ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
-  print(paste("- R2=", r2train))
+  print(paste("- Corval=", cortrain))
   print(paste("- RMSEP=", rmseptrain))
+  print(paste("- R2=", R2train))
   
   print(paste("Perf test (dim = ", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- R2=", r2test))
+  print(paste("- Corval=", cortest))
   print(paste("- RMSEP=", rmseptest))
+  print(paste("- R2=", R2test))
   
   return(modelpcr)
   
@@ -509,6 +534,7 @@ PLSCV = function(lfolds, prout){
   
   vcpRMSEP = NULL
   vcpR2 = NULL
+  vcpcor = NULL
   for (cp in seq(1,maxCp)){
     i = 1
     imax = length(lfolds)
@@ -531,21 +557,22 @@ PLSCV = function(lfolds, prout){
       vreal = append(vreal, dtest[,"Aff"])
       i = i + 1
     }
-    
+
     corpred = cor(vreal, vpred)
     rmsepcp = vrmsep(vreal, vpred)
+    valR2 = calR2(vreal, vpred)
     
-    vcpR2 = append(vcpR2, corpred)
+    vcpR2 = append(vcpR2, valR2)
     vcpRMSEP = append(vcpRMSEP,rmsepcp)
+    vcpcor = append(vcpcor, corpred)
+    
   }
   
-  #print(vcpR2)
-  #print (vcpRMSEP)
-  
-  png(width = 960, height = 480, filename = paste(prout ,"CVpls.png", sep = ""))
-  par(mfrow = c(1,2))
+  png(width = 960, height = 960, filename = paste(prout ,"CVpls.png", sep = ""))
+  par(mfrow = c(2,2))
   plot(seq(1,length(vcpR2)), vcpR2, type = "l", cex = 3, main = paste("R2 by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "R2")
   plot(seq(1,length(vcpRMSEP)), vcpRMSEP, type = "l", cex = 3, main = paste("RMSEP by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "RMSEP")
+  plot(seq(1,length(vcpcor)), vcpcor, type = "l", cex = 3, main = paste("Cor by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "Cor")
   dev.off()
   
   # optimal number of component
@@ -559,7 +586,7 @@ PLSCV = function(lfolds, prout){
   
   print("****PLS in CV****")
   print(paste("Optimal component: ", nbCPoptimun, sep = ""))
-  print(paste("Perf optimal in CV: RMSEP=", vcpRMSEP[nbCPoptimun], " R2=", vcpR2[nbCPoptimun], sep = ""))
+  print(paste("Perf optimal in CV: RMSEP=", vcpRMSEP[nbCPoptimun], " Corval=", vcpcor[nbCPoptimun], " R2=", vcpR2[nbCPoptimun],sep = ""))
   
   return (nbCPoptimun)
   
@@ -573,8 +600,11 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   predplstest = predict(modelpls, ncomp = nbcp, newdata = dtest)
   predplstrain = predict(modelpls, ncomp = nbcp, newdata = dtrain)
   
-  r2train = cor(dtrain[,"Aff"], predplstrain)
-  r2test = cor(dtest[,"Aff"], predplstest)
+  r2train = calR2(dtrain[,"Aff"], predplstrain)
+  r2test = calR2(dtest[,"Aff"], predplstest)
+  
+  cortrain = cor(dtrain[,"Aff"], predplstrain)
+  cortest = cor(dtest[,"Aff"], predplstest)
   
   rmseptrain = vrmsep(dtrain[,"Aff"], predplstrain)
   rmseptest = vrmsep(dtest[,"Aff"], predplstest)
@@ -583,12 +613,14 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   print("****PLS model****")
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim= ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
-  print(paste("- R2=", r2train))
+  print(paste("- Corval=", cortrain))
   print(paste("- RMSEP=", rmseptrain))
+  print(paste("- R2=", r2train))
   
   print(paste("Perf test (dim = ", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- R2=", r2test))
+  print(paste("- Corval=", cortest))
   print(paste("- RMSEP=", rmseptest))
+  print(paste("- R2=", r2test))
   
   return(modelpls)
   
