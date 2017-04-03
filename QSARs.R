@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 source ("tool.R")
 source("MachinLearning.R")
+source("performance.R")
+source("dataManager.R")
 
 library(chemmodlab)
 
@@ -34,12 +36,13 @@ prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/"
 
 modelPCR = 1
 modelSVM = 1 
-nbCV = 5
+nbCV = 10
 valcor = 0
 logaff = 0
 valcor = 0.9
 maxdata = 85
-cutoffAff = 0 
+cutoffAff = "med" 
+proptraintest = 0.20
 jeremyLib = 1
 
 maxcompPLS = 20
@@ -50,8 +53,8 @@ maxcompPLS = 20
 
 print("=====PARAMETERS=====")
 print (paste("Descriptors: ", pdesc, sep = ""))
-print (paste("Predictive variable: ", pdesc, sep = ""))
-print (paste("Folder out: ", pdesc, sep = ""))
+print (paste("Predictive variable: ", pdata, sep = ""))
+print (paste("Folder out: ", prout, sep = ""))
 print (paste("Cutoff activity in case of binary model: ", cutoffAff, sep = ""))
 print("")
 
@@ -126,52 +129,125 @@ dev.off()
 #################################
 
 # sample data with fraction
-#ltraintest = samplingDataFraction(dglobalAff, 0.33)
-#controlDatasets(ltraintest, paste(prout, "CheckTrainTest", sep = ""))
-
+ltraintest = samplingDataFraction(dglobalAff, proptraintest)
+controlDatasets(ltraintest, paste(prout, "CheckTrainTest", sep = ""))
 
 # sampling data for CV
 lgroupCV = samplingDataNgroup(dglobalAff, nbCV)
 controlDatasets(lgroupCV, paste(prout, "ChecksamplingCV", sep = ""))
 
 
+##### REGRESSION MODELS #########
+#################################
+
+
+### PCR ####
+############
+
 #Machine learning - PCR
 #nbCp = PCRCV(lgroupCV, prout)
 #PCRTrainTest(ltraintest[[1]], ltraintest[[2]], nbCp)
 
+
+### PLS  ####
+#############
 
 #Machine learning - PLS
 #nbCp = PLSCV(lgroupCV, prout)
 #PLSTrainTest(ltraintest[[1]], ltraintest[[2]], nbCp)
 
 
+######
+# RF #
+######
+
+vntree = c(10,50,100,200,500, 1000)
+vmtry = c(1,2,3,4,5,10,15,20, 25, 30)
+
+# based on CV - 5 or 10  #
+##########################
+parameters = RFGridRegCV(vntree, vmtry, lgroupCV, prout)
+RFregCV(lgroupCV, parameters[[1]], parameters[[2]], prout)
+
+# based on external set #
+#########################
+#dtrain = ltraintest[[1]]
+#dtest = ltraintest[[2]]
+#lfoldtrain = samplingDataNgroup(dtrain, 5)
+#parameters = RFGridRegCV(vntree, vmtry, lfoldtrain, paste(prout, "trainReg", sep = ""))
+
+#RFreg(dtrain, dtest, ntree, mtry, prout)
+
+
+
+## CLASSIFICATION ##
+####################
+
+# DATA TRANSFORMATION -> 0 and 1 #
+##################################
+
+if (cutoffAff == "med"){
+  cutoffAff = median(dglobalAff[,c("Aff")])
+}else{
+  cutoffAff = as.double(cutoffAff)
+}
+i1 = which(dglobalAff[,c("Aff")] > cutoffAff)
+dglobalAff[,c("Aff")] = 0 
+dglobalAff[i1,c("Aff")] = 1
+
+lgroupCV = samplingDataNgroupClass(dglobalAff, nbCV, "Aff")
+ltraintest = samplingDataFraction(dglobalAff, proptraintest) 
+
+
+#########
+#  RF  #
+########
+
+vntree = c(10,50,100,200,500, 1000)
+vmtry = c(1,2,3,4,5,10,15,20, 25, 30)
+
+# based on CV - 5 or 10  #
+##########################
+parameters = RFGridClassCV(vntree, vmtry, lgroupCV, prout)
+RFClassCV(lgroupCV, parameters[[1]], parameters[[2]], prout)
+
+# based on external set #
+#########################
+#dtrain = ltraintest[[1]]
+#dtest = ltraintest[[2]]
+
+#lfoldtrain = samplingDataNgroup(dtrain, nbCV)
+#parameters = RFGridClassCV(vntree, vmtry, lfoldtrain, paste(prout, "trainClass", sep = ""))
+#RFClass(dtrain, dtest, parameters[[1]], parameters[[2]], paste(prout, "traintestperf", sep = ""))
+
+
 
 ##### JEREMY PERFORMANCE  #####
 ###############################
+# USEFULL TO COMPARE SEVERAL METHODS
 
-
-pdf(paste(prout, "FLVbin_optimization_chemmolab.pdf", sep = ""))
+#pdf(paste(prout, "FLVbin_optimization_chemmolab.pdf", sep = ""))
 
 # put data
-dglobalAff = cbind(dglobalAff[,dim(dglobalAff)[2]],dglobalAff[,-dim(dglobalAff)[2]] )
-colnames(dglobalAff)[1] = "Aff"
+#dglobalAff = cbind(dglobalAff[,dim(dglobalAff)[2]],dglobalAff[,-dim(dglobalAff)[2]] )
+#colnames(dglobalAff)[1] = "Aff"
 
-medaff = median(dglobalAff[,1])
-print (medaff)
-i1 = which(dglobalAff[,1] >= medaff)
-print(i1)
-dglobalAff[,1] = 0 
-dglobalAff[i1,1] = 1
+#medaff = median(dglobalAff[,1])
+#print (medaff)
+#i1 = which(dglobalAff[,1] >= medaff)
+#print(i1)
+#dglobalAff[,1] = 0 
+#dglobalAff[i1,1] = 1
 
 
-print(dglobalAff[,1])
+#print(dglobalAff[,1])
 # remove outlier aff > 20
 #dglobalAff = dglobalAff[-which(dglobalAff[,1] > 20), ]
 
 
-fit = ModelTrain(data = dglobalAff, ids = FALSE)
+#fit = ModelTrain(data = dglobalAff, ids = FALSE)
 
-CombineSplits(fit, metric = "error rate")
-CombineSplits(fit, metric = "sensitivity")
-CombineSplits(fit, metric = "specificity")
-dev.off()
+#CombineSplits(fit, metric = "error rate")
+#CombineSplits(fit, metric = "sensitivity")
+#CombineSplits(fit, metric = "specificity")
+#dev.off()

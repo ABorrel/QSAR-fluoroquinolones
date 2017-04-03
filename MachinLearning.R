@@ -1,422 +1,16 @@
 #!/usr/bin/env Rscript
-source("PCAplot.R")
 
-
+source("performance.R")
 library("pls")
 
-#############
-#  quality  #
-#############
-
-
-perftable = function (list_predict, list_real){
-  nb_value = length (list_real)
-  i = 1
-  tp = 0
-  fp = 0
-  tn = 0
-  fn = 0
-  while(i <= nb_value ){
-    if (as.character(list_predict[i])=="d"){
-      if (list_predict[i] == list_real[i]){
-        tp = tp + 1
-      }else {
-        fp = fp + 1
-      }
-    }else{
-      if (list_predict[i] == list_real[i]){
-        tn = tn + 1
-      }else {
-        fn = fn + 1
-      }
-    }
-    i = i + 1
-  }
-  print (paste ("TP : ", tp, sep = ""))
-  print (paste ("TN : ", tn, sep = ""))
-  print (paste ("FP : ", fp, sep = ""))
-  print (paste ("FN : ", fn, sep = ""))
-  
-  tableval = c(tp,tn,fp,fn)
-  return (tableval)
-}
-
-
-#####################
-# Perf for classes  #
-#####################
-
-accuracy = function (tp, tn, fp, fn){
-  return ((tp + tn)/(tp + fp + tn +fn))
-}
-
-precision = function (tp, fp){
-  return (tp/(tp + fp))
-}
-
-recall = function (tp, fn){
-  return (tp/(tp + fn))
-}
-
-specificity = function (tn, fp){
-  return (tn/(tn + fp))
-}
-
-sensibility = function (tp, fn){
-  return (tp/(tp + fn))
-}
-
-
-BCR = function (tp, tn, fp, fn){
-  return (0.5*(tp/(tp+fn) + tn/(tn+fp)))
-  
-}
-
-MCC = function (tp, tn, fp, fn){
-  numerator = tp*tn-fp*fn
-  denumerator = (tp+fp) * (tp+fn) * (tn+fp) * (tn+fn)
-  return (numerator / sqrt(denumerator))
-}
-
-
-qualityPredict = function (predict, Y2){
-  print (as.vector(predict)[[1]])
-  print (as.vector(Y2)[[1]])
-  v_predict = calculTaux (as.vector(predict)[[1]], as.vector(Y2)[[1]])
-  print (paste ("accuracy : ", accuracy(v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("precision : ",precision(v_predict[1], v_predict[3]), sep = ""))
-  #print (paste ("recall : ", recall(v_predict[1], v_predict[4]), sep = ""))
-  print (paste ("sensibility : ", sensibility(v_predict[1], v_predict[4]), sep = ""))
-  print (paste ("specificity : ", sensibility(v_predict[2], v_predict[3]), sep = ""))
-  print (paste ("BCR (balanced classification rate) : ", BCR (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("BER (balanced error rate) : ", 1 - BCR (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("MCC (Matthew) : ", MCC (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  return (v_predict)
-}
+library (randomForest)
+library (MASS)
 
 
 
-
-qualityPredictList = function (test_vector, real_vector){
-  v_predict = calculTaux (test_vector, real_vector)
-  print (paste ("accuracy : ", accuracy(v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("precision : ",precision(v_predict[1], v_predict[3]), sep = ""))
-  #print (paste ("recall : ", recall(v_predict[1], v_predict[4]), sep = ""))
-  print (paste ("sensibility : ", sensibility(v_predict[1], v_predict[4]), sep = ""))
-  print (paste ("specificity : ", sensibility(v_predict[2], v_predict[3]), sep = ""))
-  print (paste ("BCR (balanced classification rate) : ", BCR (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("BER (balanced error rate) : ", 1 - BCR (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  print (paste ("MCC (Matthew) : ", MCC (v_predict[1], v_predict[2], v_predict[3], v_predict[4]), sep = ""))
-  return (v_predict)
-}
-
-
-qualityShowModelSelection = function (list_des_model, coef, v_real_train, v_predict_train, v_real_test, v_predict_test, v_real_loo, v_predict_loo, l_out_CV){
-  
-  # loo
-  criteria_loo = computedCriteria(v_real_loo, v_predict_loo)
-  # CV
-  criteria_CV = computedCriteriaCV(l_out_CV)
-  # train
-  criteria_train = computedCriteria(v_real_train, v_predict_train)
-  # test
-  criteria_test = computedCriteria(v_real_test, v_predict_test)
-  
-  # show
-  print ("descriptor")
-  print (list_des_model)
-  print (as.vector(abs(coef[list_des_model])))
-  print ("Acc_loo --- Acc_train --- Acc_test --- Acc_CV_train --- SD_CV_train --- Acc_CV_test --- SD_CV_test")
-  print (paste (criteria_loo[[1]], criteria_train[[1]], criteria_test[[1]], criteria_CV["acc_train"], criteria_CV["acc_train_SD"], criteria_CV["acc_test"], criteria_CV["acc_test_SD"], sep = "---"))
-  print ("Se_loo --- Sp_loo --- Se_train --- Sp_train --- Se_test --- Sp_test --- Se_CV_train --- SD_CV_train --- Se_CV_test --- SD_CV_test --- Sp_CV_train --- SD_CV_train --- Sp_CV_test --- SD_CV_test")
-  print (paste (criteria_loo[[2]], criteria_loo[[3]], criteria_train[[2]], criteria_train[[3]], criteria_test[[2]], criteria_test[[3]], criteria_CV["se_train"], criteria_CV["se_train_SD"], criteria_CV["se_test"],criteria_CV["se_test_SD"], criteria_CV["sp_train"], criteria_CV["sp_train_SD"], criteria_CV["sp_test"],criteria_CV["sp_test_SD"], sep = "---"))
-  print ("MCC_loo --- MCC_train --- MCC_test --- MCC_CV_train --- SD_CV_train --- MCC_CV_test --- SD_CV_test")
-  print (paste (criteria_loo[[4]], criteria_train[[4]], criteria_test[[4]], criteria_CV["mcc_train"], criteria_CV["mcc_train_SD"], criteria_CV["mcc_test"], criteria_CV["mcc_test_SD"], sep = "---"))
-  print ("**********************************************************************")
-}
-
-
-
-computedCriteria = function (v_real, v_predict){
-  
-  rate = calculTaux2 (v_predict, v_real)
-  acc = accuracy(rate[1], rate[2], rate[3], rate[4])
-  se = sensibility(rate[1], rate[4])
-  sp = sensibility(rate[2], rate[3])
-  mcc = MCC(rate[1], rate[2], rate[3], rate[4])
-  
-  return (list (acc, se, sp, mcc))
-  
-}
-
-
-computedCriteriaCV = function (l_out_CV){
-  
-  CV_train = l_out_CV[[1]]
-  CV_test = l_out_CV[[2]]
-  
-  v_acc_train = NULL
-  v_acc_test = NULL
-  v_se_train = NULL
-  v_se_test = NULL
-  v_sp_train = NULL
-  v_sp_test = NULL
-  v_mcc_train = NULL
-  v_mcc_test = NULL
-  
-  
-  for (i in seq (1,length (CV_train))){
-    v_acc_train = append (v_acc_train, CV_train[[i]][[1]])
-    v_acc_test = append (v_acc_test, CV_test[[i]][[1]])
-    v_se_train = append (v_se_train, CV_train[[i]][[2]])
-    v_se_test = append (v_se_test, CV_test[[i]][[2]])
-    v_sp_train = append (v_sp_train, CV_train[[i]][[3]])
-    v_sp_test = append (v_sp_test, CV_test[[i]][[3]])
-    v_mcc_train = append (v_mcc_train, CV_train[[i]][[4]])
-    v_mcc_test = append (v_mcc_test, CV_test[[i]][[4]])
-  }
-  
-  v_out = c(mean (v_acc_train), sd (v_acc_train), mean (v_acc_test), sd (v_acc_test), mean (v_se_train), sd (v_se_train), mean (v_se_test), sd (v_se_test), mean (v_sp_train), sd (v_sp_train), mean (v_sp_test), sd (v_sp_test),mean (v_mcc_train), sd (v_mcc_train), mean (v_mcc_test), sd (v_mcc_test) )
-  names (v_out) = c("acc_train", "acc_train_SD","acc_test", "acc_test_SD","se_train", "se_train_SD", "se_test", "se_test_SD", "sp_train", "sp_train_SD", "sp_test", "sp_test_SD", "mcc_train", "mcc_train_SD", "mcc_test", "mcc_test_SD")
-  return (v_out)
-}
-
-
-
-cumulTaux = function (taux1, taux2){
-  
-  tp = taux1[1] + taux2[1]
-  tn = taux1[2] + taux2[2]
-  fp = taux2[3]
-  fn = taux2[4]
-  
-  print (paste ("accuracy : ", accuracy(tp, tn, fp, fn), sep = ""))
-  print (paste ("precision : ",precision(tp, fp), sep = ""))
-  #print (paste ("recall : ", recall(tp, fn), sep = ""))
-  print (paste ("sensibility : ", sensibility(tp, fn), sep = ""))
-  print (paste ("specificity : ", sensibility(tn, fp), sep = ""))
-  print (paste ("BCR (balanced classification rate) : ", BCR (tp, tn, fp, fn), sep = ""))	
-  print (paste ("BER (balanced error rate) : ", 1 - BCR (tp, tn, fp, fn), sep = ""))
-  print (paste ("MCC (Matthew) : ", MCC (tp, tn, fp, fn), sep = ""))	
-  
-}
-
-
-# for ROC curve -> calcul vecteur prediction with probability (just for druggability)
-generateVect = function(proba_out_predict, threshold){
-  
-  proba_class1 = proba_out_predict[,1]
-  
-  vect_out = NULL
-  
-  for (proba in proba_class1){
-    if (proba > threshold){
-      vect_out = c(vect_out, "d")
-    }else{
-      vect_out = c(vect_out, "nd")
-    }
-  }
-  return (vect_out)
-}
-
-
-#########################
-#    PERF regression    #
-#########################
-
-
-vrmsep = function(dreal, dpredict){
-  
-  #dpredict = dpredict[rownames(dreal),]
-  
-  i = 1
-  imax = length(dreal)
-  
-  valout = 0
-  while(i <= imax){
-    valout = valout + ((dreal[i] - dpredict[i])^2)
-    i = i + 1
-  }
-  return(sqrt(valout))
-  
-}
-
-
-
-calR2 = function(dreal, dpredict){
-  
-  M = mean(dreal)
-  SCEy = 0
-  SCEtot = 0
-  for (i in seq(1, length(dreal))){
-    #print (i)
-    SCEy = SCEy + (dreal[i] - dpredict[i])*(dreal[i] - dpredict[i])
-    SCEtot = SCEtot + (dreal[i] - M)*(dreal[i] - M)
-  }
-  return (1 - (SCEy/SCEtot))
-}
-
-
-
-###############################
-# divise the dataset in folds #
-###############################
-
-samplingDataNgroupClass = function (t_din, i_nb_group, s_nameclass){
-  
-  # divise two classes
-  v_class = as.factor(t_din[,s_nameclass])
-  t_dc0 = t_din [which(v_class == 0),]
-  t_dc1 = t_din [which(v_class == 1),]
-  
-  
-  # sample data
-  v_sampledc0 = sample (dim (t_dc0)[1])
-  v_sampledc1 = sample (dim (t_dc1)[1])
-  
-  # ind limit
-  i_limitc0 = as.integer (dim(t_dc0)[1] / i_nb_group)
-  i_limitc1 = as.integer (dim(t_dc1)[1] / i_nb_group)
-  
-  #print (i_limitc0)
-  #print (i_limitc1)
-  
-  output = list ()
-  for (g in 1:i_nb_group){
-    #print (g)
-    # start selct 1
-    if (g == 1 ){
-      t_group = rbind (t_dc0[v_sampledc0[1:i_limitc0],], t_dc1[v_sampledc1[1:i_limitc1],])
-    }
-    # last end to number of coulumn
-    else if (g == i_nb_group){
-      #print ("inf")
-      #print (i_limitc0 * (g-1) + 1)
-      #print (i_limitc1 * (g-1) + 1)
-      #print ("sup")
-      #print (length (v_sampledc0))
-      #print (length (v_sampledc1))
-      #print ("**IC**")
-      #print ((i_limitc0 * (g-1) + 1):(length (v_sampledc0)))
-      #print ((i_limitc1 * (g-1) + 1):(length (v_sampledc1)))
-      
-      
-      t_group = rbind (t_dc0[v_sampledc0[((i_limitc0 * (g-1) + 1):(length (v_sampledc0)))],], t_dc1[(v_sampledc1[(i_limitc1 * (g-1) + 1):(length (v_sampledc1))]),])
-    }
-    else{
-      t_group = rbind (t_dc0[(v_sampledc0[(i_limitc0 * (g-1) + 1):(i_limitc0 * g)]),], t_dc1[(v_sampledc1[(i_limitc1 * (g-1) + 1):(i_limitc1 * g)]),])
-    }
-    # append list
-    output[[g]] = t_group
-  }
-  
-  return (output)
-}
-
-
-
-
-samplingDataFraction = function (t_din, fract){
-  
-  # sample data
-  v_sample = sample (dim (t_din)[1])
-  
-  # ind limit
-  i_limitc = round((dim (t_din)[1]) * fract)
-  
-  dtrain = t_din[v_sample[(i_limitc + 1):(length (v_sample))],]
-  dtest = t_din[v_sample[1:i_limitc],]
-  
-  return (list(dtrain, dtest))
-  
-}
-
-
-
-
-samplingDataNgroup = function (t_din, i_nb_group){
-  
-  # sample data
-  v_sample = sample (dim (t_din)[1])
-  
-  # ind limit
-  i_limitc = as.integer (dim(t_din)[1] / i_nb_group)
-  
-  output = list ()
-  for (g in 1:i_nb_group){
-    #print (g)
-    # start selct 1
-    if (g == 1 ){
-      t_group = t_din[v_sample[1:i_limitc],]
-    }
-    # last end to number of coulumn
-    else if (g == i_nb_group){
-      #print ("inf")
-      #print (i_limitc0 * (g-1) + 1)
-      #print (i_limitc1 * (g-1) + 1)
-      #print ("sup")
-      #print (length (v_sampledc0))
-      #print (length (v_sampledc1))
-      #print ("**IC**")
-      #print ((i_limitc0 * (g-1) + 1):(length (v_sampledc0)))
-      #print ((i_limitc1 * (g-1) + 1):(length (v_sampledc1)))
-      
-      
-      t_group = t_din[v_sample[((i_limitc * (g-1) + 1):(length (v_sample)))],]
-    }
-    else{
-      t_group = t_din[(v_sample[(i_limitc * (g-1) + 1):(i_limitc * g)]),]
-    }
-    # append list
-    output[[g]] = t_group
-  }
-  
-  return (output)
-}
-
-
-
-
-#################################
-#   Control dataset integrity   #
-#################################
-
-controlDatasets = function(ldataset, prin){
-  
-  nbsplit = length(ldataset)
-  
-  print (nbsplit)
-  
-  pdf(paste(prin,".pdf", sep = ""), width = 10, height = 10)
-  
-  colorrainbow = rainbow(nbsplit)
-  i = 1
-  colorpoint = NULL
-  dPCA = NULL
-  for (d in ldataset){
-    hist(d[,(dim(d)[2])], col = "grey", main = paste("Fold ", i, "-Dim=", dim(d)[1], sep = ""))
-
-    #points for PCA
-    colorpoint = append(colorpoint, rep(colorrainbow[i], (dim(d)[1])))
-    dPCA = rbind(dPCA, d[,-dim(d)[2]]) # remove affinity coulum
-    i = i + 1
-  }
-  
-  # plot PCA
-  dplot = generatePCAcoords(dPCA)
-  var_cap = dplot[[2]]
-  data_plot = dplot[[1]]
-  #par(mar=c(8,8,8,8))
-  plot(data_plot[,1],data_plot[,2], pch=20, col = colorpoint, xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 2, cex.main = 2, cex.axis = 1.75, cex = 2)
-  abline(h=0,v=0)
-  dev.off()
-  
-}
-
-
-########################
-#    MODEL regression  #
-########################
+##################
+#    PCR MODELS  #
+##################
 
 
 # PCR - cross validation
@@ -433,11 +27,10 @@ PCRCV = function(lfolds, prout){
   for (cp in seq(1,maxCp)){
     i = 1
     imax = length(lfolds)
-    vpred = NULL
-    vreal = NULL
     while(i <= imax){
       dtrain = NULL
       dtest = NULL
+      vpred = NULL
       for (j in seq(1:imax)){
         if (j == i){
           dtest = lfolds[[j]]
@@ -490,7 +83,7 @@ PCRCV = function(lfolds, prout){
 }
 
 
-# PCR - real
+# PCR - real #
 PCRTrainTest = function(dtrain, dtest, nbcp){
   
   modelpcr = pcr(Aff~., data=dtrain, ncomp = nbcp)
@@ -524,6 +117,11 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
 
 
 
+##################
+#    PLS MODELS  #
+##################
+
+
 # PLS in cross validation
 PLSCV = function(lfolds, prout){
   
@@ -538,11 +136,10 @@ PLSCV = function(lfolds, prout){
   for (cp in seq(1,maxCp)){
     i = 1
     imax = length(lfolds)
-    vpred = NULL
-    vreal = NULL
     while(i <= imax){
       dtrain = NULL
       dtest = NULL
+      vpred = NULL
       for (j in seq(1:imax)){
         if (j == i){
           dtest = lfolds[[j]]
@@ -592,8 +189,7 @@ PLSCV = function(lfolds, prout){
   
 }
 
-
-# PLS - real
+# PLS - real #
 PLSTrainTest = function(dtrain, dtest, nbcp){
   
   modelpls = plsr(Aff~., data=dtrain, ncomp = nbcp)
@@ -617,13 +213,385 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   print(paste("- RMSEP=", rmseptrain))
   print(paste("- R2=", r2train))
   
-  print(paste("Perf test (dim = ", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- Corval=", cortest))
-  print(paste("- RMSEP=", rmseptest))
-  print(paste("- R2=", r2test))
+  print(paste("Perf test (dim=", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
+  print(paste("- Corval=", cortest, sep = ""))
+  print(paste("- RMSEP=", rmseptest, sep = ""))
+  print(paste("- R2=", r2test, sep = ""))
   
   return(modelpls)
   
 }
 
+
+
+#################
+# Random forest #
+#################
+
+######################
+# case of regression #
+######################
+
+RFGridRegCV = function(lntree, lmtry, lfolds, prout){
+  
+  gridOpt = data.frame ()
+  i = 0
+  for (ntree in lntree){
+    i = i + 1
+    j = 0
+    for (mtry in lmtry){
+      j = j + 1
+      
+      # data combination
+      k = 1
+      kmax = length(lfolds)
+      y_predict = NULL
+      y_real = NULL
+      while(k <= kmax){
+        dtrain = NULL
+        dtest = NULL
+        for (m in seq(1:kmax)){
+          if (m == k){
+            dtest = lfolds[[m]]
+          }else{
+            dtrain = rbind(dtrain, lfolds[[m]])
+          }
+        }
+        
+        modelRF = randomForest( Aff~., data = dtrain, mtry=mtry, ntree = ntree, type = "response",  importance=TRUE)
+        vpred = predict (modelRF, dtest, type = "response")
+        
+        y_predict = append(y_predict, vpred)
+        y_real = append(y_real, dtest[,"Aff"])
+        k = k + 1
+      }
+      
+      # R2 for grid
+      
+      valr2 = calR2(y_real, y_predict)
+      #print(valr2)
+      gridOpt[i,j] = valr2
+      
+      # R conversion 
+      
+      #rate = calculTaux2  (changeList(as.double(l_predict)-1),changeList(y_real))
+      #mcc = MCC (rate[1], rate[2], rate[3], rate[4])
+      #grid[i,j] = mcc
+    }
+  }
+  colnames (gridOpt) = lmtry
+  rownames (gridOpt) = lntree
+  
+  write.table (gridOpt, paste(prout, "RFreg.grid", sep = ""))
+  
+  print(paste("=== RF grid optimisation in CV=", length(lfolds), " ntree = ", rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]], " mtry=", colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]], sep = ""))
+  return (list(rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]],colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]] ))
+}
+
+RFregCV = function(lfolds, ntree, mtry, prout){
+  
+  print(paste("==RF in CV with ", length(lfolds), " folds ntree = ", ntree, " mtry = ", mtry, sep = ""))
+  
+  # data combination
+  k = 1
+  kmax = length(lfolds)
+  y_predict = NULL
+  y_real = NULL
+  timportance = NULL
+  while(k <= kmax){
+    dtrain = NULL
+    dtest = NULL
+    for (m in seq(1:kmax)){
+      if (m == k){
+        dtest = lfolds[[m]]
+      }else{
+        dtrain = rbind(dtrain, lfolds[[m]])
+      }
+    }
+    
+    modelRF = randomForest( Aff~., data = dtrain, mtry=as.integer(mtry), ntree=as.integer(ntree), type = "response",  importance=TRUE)
+    vpred = predict (modelRF, dtest, type = "response")
+    
+    timportance = cbind(timportance, modelRF$importance[,1])
+    
+    y_predict = append(y_predict, vpred)
+    y_real = append(y_real, dtest[,"Aff"])
+    k = k + 1
+  }
+  
+  # performances
+  valr2 = calR2(y_real, y_predict)
+  corval = cor(y_real, y_predict)
+  RMSEP = vrmsep(y_real, y_predict)
+  
+  png(paste(prout, "RFCV", length(lfolds), ".png", sep = ""), 800, 800)
+  plot(y_real, y_predict, type = "n")
+  text(y_real, y_predict, labels = names(y_predict))
+  abline(a = 1, b = 1, col = "red", cex = 3)
+  dev.off()
+  
+  print("Perfomances in CV")
+  print(paste("R2=", valr2, sep = ""))
+  print(paste("Cor=", corval, sep = ""))
+  print(paste("RMSEP=", RMSEP, sep = ""))
+  
+  # importance descriptors
+  Mimportance = apply(timportance, 1, mean)
+  SDimportance = apply(timportance, 1, sd)
+  
+  dimportance = cbind(Mimportance, SDimportance)
+  rownames(dimportance) = rownames(timportance)
+  dimportance = dimportance[order(dimportance[,1], decreasing = TRUE),]
+  
+  
+  png(paste(prout, "ImportanceRFregCV_", length(lfolds), ".png", sep = ""), 1000, 800)
+  par( mar=c(10,4,4,4))
+  plot(dimportance[,1], xaxt ="n", xlab="", pch = 19, ylab="M importance")
+  axis(1, 1:length(dimportance[,1]), labels = rownames(dimportance), las = 2, cex.axis = 0.7, cex = 2.75)
+  for (i in 1:(dim(dimportance)[1])){
+    segments(i, dimportance[i,1] - dimportance[i,2], i, dimportance[i,1] + dimportance[i,2])
+  }
+  dev.off()
+  
+  png(paste(prout, "PerfRFreg_CV", length(lfolds), ".png", sep = ""), 1000, 800)
+  plot(y_real, y_predict, type = "n")
+  text(y_real, y_predict, labels = names(y_predict))
+  abline(a = 1, b = 1, col = "red", cex = 3)
+  dev.off()  
+  
+}
+
+RFreg = function (dtrain, dtest, ntree, mtry, prout){
+  
+  
+  modelRF = randomForest( Aff~., data = dtrain, mtry=as.integer(mtry), ntree=as.integer(ntree), type = "response",  importance=TRUE)
+  vpredtrain = predict (modelRF, dtrain, type = "response")
+  vpredtest = predict (modelRF, dtest, type = "response")
+  
+  r2train = calR2(dtrain[,"Aff"], vpredtrain)
+  cortrain = cor(dtrain[,"Aff"], vpredtrain)
+  RMSEPtrain = vrmsep(dtrain[,"Aff"], vpredtrain)
+  
+  r2test = calR2(dtest[,"Aff"], vpredtest)
+  cortest = cor(dtest[,"Aff"], vpredtest)
+  RMSEPtest = vrmsep(dtest[,"Aff"], vpredtest)
+  
+  print("===Perf RF===")
+  print(paste("Dim train: ", dim(dtrain)[1]," ", dim(dtrain)[2], sep = ""))
+  print(paste("Dim test: ", dim(dtest)[1]," ", dim(dtest)[2], sep = ""))
+  
+  print("==Train==")
+  print(paste("R2=", r2train, sep = ""))
+  print(paste("cor=", cortrain, sep = ""))
+  print(paste("RMSEP=", RMSEPtrain, sep = ""))
+  
+  
+  print("==Test==")
+  print(paste("R2=", r2test, sep = ""))
+  print(paste("cor=", cortest, sep = ""))
+  print(paste("RMSEP=", RMSEPtest, sep = ""))
+  
+  png(paste(prout, "RFregModel.png", sep = ""), 800, 800)
+  plot(modelRF)
+  dev.off()
+  
+  png(paste(prout, "PerfTrainTest.png", sep = ""), 1600, 800)
+  par(mfrow = c(1,2))
+  plot(dtrain[,"Aff"], vpredtrain, type = "n")
+  text(dtrain[,"Aff"], vpredtrain, labels = names(vpredtrain))
+  abline(a = 1, b = 1, col = "red", cex = 3)
+  
+  plot(dtest[,"Aff"], vpredtest, type = "n")
+  text(dtest[,"Aff"], vpredtest, labels = names(vpredtest))
+  abline(a = 1, b = 1, col = "red", cex = 3)
+  dev.off()
+  
+}
+
+
+#####################
+#  classification   #
+#####################
+
+RFGridClassCV = function(lntree, lmtry, lfolds, prout){
+  
+  gridOpt = data.frame ()
+  i = 0
+  for (ntree in lntree){
+    i = i + 1
+    j = 0
+    for (mtry in lmtry){
+      j = j + 1
+      
+      # data combination
+      k = 1
+      kmax = length(lfolds)
+      y_predict = NULL
+      y_real = NULL
+      while(k <= kmax){
+        dtrain = NULL
+        dtest = NULL
+        for (m in seq(1:kmax)){
+          if (m == k){
+            dtest = lfolds[[m]]
+          }else{
+            dtrain = rbind(dtrain, lfolds[[m]])
+          }
+        }
+        
+        modelRF = randomForest( Aff~., data = dtrain, mtry=mtry, ntree = ntree, type = "class",  importance=TRUE)
+        vpred = predict (modelRF, dtest)
+        vpred[which(vpred < 0.5)] = 0
+        vpred[which(vpred >= 0.5)] = 1
+        
+        y_predict = append(y_predict, vpred)
+        y_real = append(y_real, dtest[,"Aff"])
+        k = k + 1
+      }
+      
+      
+      # R2 for grid
+      #print(y_predict)
+      l_perf = classPerf(y_real, y_predict)
+      gridOpt[i,j] = l_perf[[4]]
+      
+      # R conversion 
+    }
+  }
+  colnames (gridOpt) = lmtry
+  rownames (gridOpt) = lntree
+  
+  print(gridOpt)
+  
+  write.table (gridOpt, paste(prout, "RFclassMCC.grid", sep = ""))
+  print(which(gridOpt == max(gridOpt), arr.ind = TRUE))
+  
+  print("******")
+  print(paste("=== RF grid optimisation in CV=", length(lfolds), " ntree = ", rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]], " mtry=", colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]], sep = ""))
+  return (list(rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]],colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]] ))
+}
+
+RFClassCV = function(lfolds, ntree, mtry, prout){
+  
+  print(paste("== RF in CV with ", length(lfolds), " folds ntree = ", ntree, " mtry = ", mtry, sep = ""))
+  
+  # data combination
+  k = 1
+  kmax = length(lfolds)
+  y_predict = NULL
+  y_real = NULL
+  timportance = NULL
+  y_proba = NULL
+  while(k <= kmax){
+    dtrain = NULL
+    dtest = NULL
+    for (m in seq(1:kmax)){
+      if (m == k){
+        dtest = lfolds[[m]]
+      }else{
+        dtrain = rbind(dtrain, lfolds[[m]])
+      }
+    }
+    
+    modelRF = randomForest( Aff~., data = dtrain, mtry=as.integer(mtry), ntree=as.integer(ntree), type = "class",  importance=TRUE)
+    vpred = predict (modelRF, dtest)
+    vproba = vpred
+    vpred[which(vpred < 0.5)] = 0
+    vpred[which(vpred >= 0.5)] = 1
+    
+    timportance = cbind(timportance, modelRF$importance[,1])
+    y_predict = append(y_predict, vpred)
+    y_proba = append(y_proba, vproba)
+    y_real = append(y_real, dtest[,"Aff"])
+    k = k + 1
+  }
+  
+  # performances
+  lpref = classPerf(y_real, y_predict)
+  acc = lpref[[1]]
+  se = lpref[[2]]
+  sp = lpref[[3]]
+  mcc = lpref[[4]]
+  
+  png(paste(prout, "PerfRFClassCV", length(lfolds), ".png", sep = ""), 800, 800)
+  plot(y_real, y_proba, type = "n")
+  text(y_real, y_proba, labels = names(y_predict), cex = 0.8)
+  abline(a = 0.5, b = 0, col = "red", cex = 3)
+  dev.off()
+  
+  print("Perfomances in CV")
+  print(paste("acc=", acc, sep = ""))
+  print(paste("se=", se, sep = ""))
+  print(paste("sp=", sp, sep = ""))
+  print(paste("mcc=", mcc, sep = ""))
+  
+  # importance descriptors
+  Mimportance = apply(timportance, 1, mean)
+  SDimportance = apply(timportance, 1, sd)
+  
+  dimportance = cbind(Mimportance, SDimportance)
+  rownames(dimportance) = rownames(timportance)
+  dimportance = dimportance[order(dimportance[,1], decreasing = TRUE),]
+  
+  
+  png(paste(prout, "ImportanceRFClassCV_", length(lfolds), ".png", sep = ""), 1000, 800)
+  par( mar=c(10,4,4,4))
+  plot(dimportance[,1], xaxt ="n", xlab="", pch = 19, ylab="M importance")
+  axis(1, 1:length(dimportance[,1]), labels = rownames(dimportance), las = 2, cex.axis = 0.7, cex = 2.75)
+  for (i in 1:(dim(dimportance)[1])){
+    segments(i, dimportance[i,1] - dimportance[i,2], i, dimportance[i,1] + dimportance[i,2])
+  }
+  dev.off()
+  return(y_predict)
+}
+
+RFClass = function (dtrain, dtest, ntree, mtry, prout){
+  
+  
+  modelRF = randomForest( Aff~., data = dtrain, mtry=as.integer(mtry), ntree=as.integer(ntree), type = "class",  importance=TRUE)
+  vpredtrain = predict (modelRF, dtrain, type = "class")
+  vpredtest = predict (modelRF, dtest, type = "class")
+  
+  vpredtrainprob = vpredtrain
+  vpredtestprob = vpredtest
+  
+  vpredtest[which(vpredtest < 0.5)] = 0
+  vpredtest[which(vpredtest >= 0.5)] = 1
+  vpredtrain[which(vpredtrain < 0.5)] = 0
+  vpredtrain[which(vpredtrain >= 0.5)] = 1
+  
+  
+  vperftrain = classPerf(dtrain[,c("Aff")], vpredtrain)
+  vperftest = classPerf(dtest[,c("Aff")], vpredtest)
+  
+  print("===Perf RF===")
+  print(paste("Dim train: ", dim(dtrain)[1]," ", dim(dtrain)[2], sep = ""))
+  print(paste("Dim test: ", dim(dtest)[1]," ", dim(dtest)[2], sep = ""))
+  
+  print("==Train==")
+  print(paste("acc=", vperftrain[[1]], sep = ""))
+  print(paste("se=", vperftrain[[2]], sep = ""))
+  print(paste("sp=", vperftrain[[3]], sep = ""))
+  print(paste("mcc=", vperftrain[[4]], sep = ""))
+    
+  
+  print("==Test==")
+  print(paste("acc=", vperftest[[1]], sep = ""))
+  print(paste("se=", vperftest[[2]], sep = ""))
+  print(paste("sp=", vperftest[[3]], sep = ""))
+  print(paste("mcc=", vperftest[[4]], sep = ""))
+  
+
+  png(paste(prout, "PerfTrainTest.png", sep = ""), 1600, 800)
+  par(mfrow = c(1,2))
+  plot(dtrain[,"Aff"], vpredtrainprob, type = "n")
+  text(dtrain[,"Aff"], vpredtrainprob, labels = names(vpredtrainprob))
+  abline(a = 0.5, b = 0, col = "red", cex = 3)
+  
+  plot(dtest[,"Aff"], vpredtest, type = "n")
+  text(dtest[,"Aff"], vpredtestprob, labels = names(vpredtestprob))
+  abline(a = 0.5, b = 0, col = "red", cex = 3)
+  dev.off()
+  
+}
 
