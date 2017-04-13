@@ -23,43 +23,65 @@ library (rpart)
 #nbCV = args[6]
 #valcor = 0.7
 
+# Staphylococcus-aureus
 #pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Staphylococcus-aureus.csv"
 #pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Staphylococcus-aureus.csv"
 #prout = "/home/aborrel/fluoroquinolones/results/model/Staphylococcus-aureus/" 
 
+# Pseudomonas-aeruginosa
+#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Pseudomonas-aeruginosa.csv"
+#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Pseudomonas-aeruginosa.csv"
+#prout = "/home/aborrel/fluoroquinolones/results/model/Pseudomonas-aeruginosa/"
 
-pdesc = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/desc.csv"
-pdata = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/Carbamate.csv"
-prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/OD" 
+# Escherichia-coli
+#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Escherichia-coli.csv"
+#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Escherichia-coli.csv"
+#prout = "/home/aborrel/fluoroquinolones/results/model/Escherichia-coli/"
+
+# Streptococcus-pneumoniae
+
+pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Streptococcus-pneumoniae.csv"
+pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Streptococcus-pneumoniae.csv"
+prout = "/home/aborrel/fluoroquinolones/results/model/Streptococcus-pneumoniae/"
+
+# Melender FLV
+#pdesc = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/desc.csv"
+#pdata = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/Carbamate.csv"
+#prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/FLV/" 
+
+# Melender OD
+#pdesc = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/desc.csv"
+#pdata = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/Carbamate.csv"
+#prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/OD/" 
 
 
 
 # model regression #
 ####################
-modelPCRreg = 0
-modelPLSreg = 0
-modelSVMreg = 0
-modelRFreg = 0
+modelPCRreg = 1
+modelPLSreg = 1
+modelSVMreg = 1
+modelRFreg = 1
 modelCartreg = 1
-chemmodlabreg = 0
+chemmodlabreg = 1
 
 
 # model classification #
 ########################
 modelPCRclass = 0
 modelPLSclass = 0
-modelSVMclass = 0
-modelRFclass = 0
+modelSVMclass = 1
+modelRFclass = 1
 modelLDA = 0
 modelCartclass = 1
-chemmodlabclass = 0
+chemmodlabclass = 1
 
 
 # Paramaters global #
 #####################
 nbCV = 10
-valcor = 0
-logaff = 0
+valcor = 0.8
+logaff = 1
 maxquantile = 85
 cutoffAff = "med" 
 proptraintest = 0.20
@@ -79,7 +101,7 @@ print("")
 
 print("=====Data filtering=====")
 print(paste("Cor value for clustering: ", valcor, sep = ""))
-print(paste("Max percentage data by decile: ", maxdata, sep = ""))
+print(paste("Max percentage data by decile: ", maxquantile, sep = ""))
 print("")
 
 print("=====Machine learning=====")
@@ -99,12 +121,14 @@ print(paste("SVM: ", modelSVMclass, sep = ""))
 print(paste("CART: ", modelCartclass, sep = ""))
 print(paste("RF: ", modelRFclass, sep = ""))
 print(paste("Chemmodlab: ", chemmodlabclass, sep = ""))
-
+print("")
 
 
 ##############################
 # Process descriptors matrix #
 ##############################
+
+
 dglobal = openData(pdesc, valcor, prout, c(1,2))
 dglobal = dglobal[[1]]
 
@@ -112,17 +136,24 @@ rownames(dglobal) = dglobal[,1]
 dglobal = dglobal[,-1]
 dglobal = dglobal[,-1]# remove SMILES
 
-# filter
-dglobal = delnohomogeniousdistribution(dglobal, maxdata)
+print("==== Preprocessing ====")
+print(paste("Data initial: dim = ", dim(dglobal)[1], dim(dglobal)[2], sep = " "))
+
+##########
+# filter #
+##########
+
+dglobal = delnohomogeniousdistribution(dglobal, maxquantile)
+print(paste("Data after filtering: dim = ", dim(dglobal)[1], dim(dglobal)[2], sep = " "))
 
 #######################
 # order with affinity #
 #######################
 # Opening
 ddata = read.table(pdata, sep = "\t", header = TRUE)
-print(dim(ddata))
-#daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] # !!!!!!!!!!!!!
-daffinity = ddata[,c("ID", "Odavg")]
+
+daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] # !!!!!!!!!!!!!
+#daffinity = ddata[,c("ID", "Odavg")]
 #daffinity = ddata[,c("ID", "FLDavg")]
 
 #print(daffinity)
@@ -148,7 +179,6 @@ hist(dglobalAff[,c("Aff")], col = "grey", main = "Hist aff", xlab = "Aff", ylab 
 
 if(logaff == 1){
   dglobalAff[,c("Aff")] = log10(dglobalAff[,c("Aff")])
-  print(dglobalAff[,c("Aff")])
   hist(dglobalAff[,c("Aff")], col = "grey", main = "Hist of log10 Aff", xlab = "log10 aff", ylab = "Occurencies")
 }
 
@@ -165,15 +195,27 @@ lgroupCV = samplingDataNgroup(dglobalAff, nbCV)
 controlDatasets(lgroupCV, paste(prout, "ChecksamplingCV", sep = ""))
 
 
+print(paste("Data size final=>", dim(dglobalAff)[1], dim(dglobalAff)[2]))
+
+
+
+
 ##### REGRESSION MODELS #########
 #################################
+
+
+print("**************************")
+print("*****  REGRESSSION   *****")
+print("**************************")
 
 
 ### PCR ####
 ############
 
 if (modelPCRreg == 1){
-  nbCp = PCRCV(lgroupCV, prout)
+  nbCp = PCRgridCV(lgroupCV, prout)
+  print(nbCp)
+  PCRCV(lgroupCV, nbCp, prout)
   PCRTrainTest(ltraintest[[1]], ltraintest[[2]], nbCp)
 }
 
@@ -181,9 +223,7 @@ if (modelPCRreg == 1){
 #############
 
 if (modelPLSreg == 1){
-  nbCp = PCRgridCV(lgroupCV, prout)
-  PCRCV (lgroupCV, nbCp, prout)
-  PLSTrainTest(ltraintest[[1]], ltraintest[[2]], nbCp)
+  PLSCV(lgroupCV, prout)
 }
 
 ### SVM ###
@@ -213,6 +253,17 @@ if (modelRFreg == 1){
   RFreg(dtrain, dtest,parameters[[1]], parameters[[2]], prout)
 }
 
+
+
+############
+#   CART   #
+############
+
+if(modelCartreg == 1){
+  CARTRegCV(lgroupCV, prout)
+}
+
+
 #############
 # CHEMMOLAB #
 #############
@@ -225,18 +276,7 @@ if(chemmodlabreg == 1){
   fit = ModelTrain(data = dchem, ids = FALSE)
   CombineSplits(fit, metric = "R2")
   CombineSplits(fit, metric = "rho")
-  CombineSplits(fit, metric = "auc")
   dev.off()
-}
-
-
-############
-#   CART   #
-############
-
-if(modelCartreg == 1){
-  print("dd")
-  
 }
 
 
@@ -258,6 +298,13 @@ dglobalAff[i1,c("Aff")] = 1
 
 lgroupCV = samplingDataNgroupClass(dglobalAff, nbCV, "Aff")
 ltraintest = samplingDataFraction(dglobalAff, proptraintest) 
+
+
+
+print("**************************")
+print("***  CLASSIFICATION  *****")
+print("**************************")
+
 
 
 #########

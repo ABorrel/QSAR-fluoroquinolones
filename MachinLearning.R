@@ -7,7 +7,7 @@ library (randomForest)
 library (MASS)
 library(rpart)
 library(rpart.plot)
-
+library(e1071)
 
 ##################
 #    PCR MODELS  #
@@ -18,9 +18,10 @@ PCRgridCV = function(lfolds, prout){
   
   # performance in CV and number of cmp
   # return best number of cmp
-  print(paste("== PCR in CV with ", length(lfolds), " Automatic optimization by folds", sep = ""))
+  print(paste("== PCR in CV with ", length(lfolds), " Automatic optimization by folds ===", sep = ""))
+
   
-  maxCp = dim(lfolds[[1]])[2] - 1
+  maxCp = dim(lfolds[[1]])[1] -1
   
   vcpRMSEP = NULL
   vcpR2 = NULL
@@ -40,6 +41,7 @@ PCRgridCV = function(lfolds, prout){
           dtrain = rbind(dtrain, lfolds[[j]])
         }
       }
+      
       modelpcr = pcr(Aff~., data=dtrain, ncomp = cp)
       predpcr = predict(modelpcr, ncomp = cp, dtest, type = "response")
       
@@ -47,6 +49,9 @@ PCRgridCV = function(lfolds, prout){
       vreal = append(vreal, dtest[,"Aff"])
       i = i + 1
     }
+    
+    #print(vpred)
+    #print(vreal)
     
     corpred = cor(vreal, vpred)
     rmsepcp = vrmsep(vreal, vpred)
@@ -56,9 +61,6 @@ PCRgridCV = function(lfolds, prout){
     vcpRMSEP = append(vcpRMSEP,rmsepcp)
     vcpR2 = append(vcpR2, R2cp)
   }
-  
-  #print(vcpR2)
-  #print (vcpRMSEP)
   
   png(width = 960, height = 960, filename = paste(prout ,"gridPCRCV.png", sep = ""))
   par(mfrow = c(2,2))
@@ -83,7 +85,8 @@ PCRgridCV = function(lfolds, prout){
   print(paste("R2=", vcpR2[nbCPoptimun], sep = ""))
   print(paste("Cor=", vcpcor[nbCPoptimun], sep = ""))
   print(paste("RMSEP=", vcpRMSEP[nbCPoptimun], sep = ""))
-  
+  print("")
+  print("")
   return (nbCPoptimun)
   
 }
@@ -93,7 +96,7 @@ PCRCV = function(lfolds, nbcomp, prout){
   
   # performance in CV and number of cmp
   # return best number of cmp
-  print(paste("== PCR in CV with ", length(lfolds), " Nb compound:", nbcomp, sep = ""))
+  print(paste("==== PCR in CV with ", length(lfolds), "folds Nb compound:", nbcomp, "====",sep = ""))
   
   imax = length(lfolds)
   vpred = NULL
@@ -137,7 +140,8 @@ PCRCV = function(lfolds, nbcomp, prout){
   print(paste("R2=", R2cp, sep = ""))
   print(paste("Cor=", corpred, sep = ""))
   print(paste("RMSEP=", rmsepcp, sep = ""))
-  
+  print("")
+  print("")
 }
   
 # PCR - real #
@@ -156,17 +160,19 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
   R2train = calR2(dtrain[,"Aff"], predpcrtrain)
   R2test = calR2(dtest[,"Aff"], predpcrtest)
   
-  print("****PCR model****")
+  print("====PCR model on external test====")
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim = ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
-  print(paste("- Corval=", cortrain))
-  print(paste("- RMSEP=", rmseptrain))
-  print(paste("- R2=", R2train))
-  
+  print(paste("Corval=", cortrain))
+  print(paste("RMSEP=", rmseptrain))
+  print(paste("R2=", R2train))
+  print("****")
   print(paste("Perf test (dim = ", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- Corval=", cortest))
-  print(paste("- RMSEP=", rmseptest))
-  print(paste("- R2=", R2test))
+  print(paste("Corval=", cortest))
+  print(paste("RMSEP=", rmseptest))
+  print(paste("R2=", R2test))
+  print("")
+  print("")
   
   return(modelpcr)
   
@@ -184,7 +190,7 @@ PLSCV = function(lfolds, prout){
   # performance in CV and number of cmp
   # return best number of cmp
   
-  maxCp = dim(lfolds[[1]])[2] -1 # remove col with affinity
+  maxCp = dim(lfolds[[1]])[1]
   
   vcpRMSEP = NULL
   vcpR2 = NULL
@@ -244,6 +250,8 @@ PLSCV = function(lfolds, prout){
   print(paste("Cor=", vcpcor[nbCPoptimun], sep = ""))
   print(paste("RMSEP=", vcpRMSEP[nbCPoptimun], sep = ""))
   
+  print("")
+  print("")
   return (nbCPoptimun)
   
 }
@@ -292,7 +300,7 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
 
 SVMRegCV = function(lfolds, vgamma, vcost, prout){
   
-  print(paste("== SVM in CV with ", length(lfolds), " Automatic optimization by folds", sep = ""))
+  print(paste("==== SVM in CV with ", length(lfolds), " Automatic optimization CV ====", sep = ""))
   
   # data combination
   k = 1
@@ -368,7 +376,6 @@ SVMClassCV = function(lfolds, vgamma, vcost, prout){
     
     modtune = tune(svm, Aff~., data = dtrain, ranges = list(gamma = vgamma, cost = vcost), tunecontrol = tune.control(sampling = "fix"))
     
-    print(summary(modtune))
     vpred = predict (modtune$best.model, dtest, type = "class")
     y_proba = append(y_proba, vpred)
     
@@ -645,13 +652,10 @@ RFGridClassCV = function(lntree, lmtry, lfolds, prout){
   colnames (gridOpt) = lmtry
   rownames (gridOpt) = lntree
   
-  print(gridOpt)
-  
   write.table (gridOpt, paste(prout, "RFclassMCC.grid", sep = ""))
   print(which(gridOpt == max(gridOpt), arr.ind = TRUE))
   
-  print("******")
-  print(paste("=== RF grid optimisation in CV=", length(lfolds), " ntree = ", rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]], " mtry=", colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]], sep = ""))
+  print(paste("=== RF grid optimisation in CV = ", length(lfolds), " ntree = ", rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]], " mtry=", colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]], sep = ""))
   return (list(rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]],colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]] ))
 }
 
@@ -794,6 +798,67 @@ RFClass = function (dtrain, dtest, ntree, mtry, prout){
 # case of regression #
 ######################
 
+CARTRegCV = function(lfolds, prout){
+  
+  print(paste("== CART in CV with ", length(lfolds), "==", sep = ""))
+  
+  # data combination
+  k = 1
+  kmax = length(lfolds)
+  y_predict = NULL
+  y_real = NULL
+  y_proba = NULL
+  pdf(paste(prout, "TreeCARTReg-CV", length(lfolds), ".pdf",sep = ""))
+  while(k <= kmax){
+    dtrain = NULL
+    dtest = NULL
+    for (m in seq(1:kmax)){
+      if (m == k){
+        dtest = lfolds[[m]]
+      }else{
+        dtrain = rbind(dtrain, lfolds[[m]])
+      }
+    }
+    
+    modelCART = rpart( Aff~., data = dtrain, method = "anova")#, control = rpart.control(cp = 0.05))
+    vpred = predict(modelCART, dtest[,-dim(dtest)[2]], type = "vector")
+    
+    #print(vpred)
+    # plot tree in pdf
+    plotcp(modelCART)
+    rpart.plot( modelCART , # middle graph
+                box.palette="GnBu",
+                branch.lty=3, shadow.col="gray", nn=TRUE)
+    
+    y_predict = append(y_predict, vpred)
+    y_real = append(y_real, dtest[,"Aff"])
+    
+    k = k + 1
+  }
+  dev.off()
+  
+  # performances
+  valr2 = calR2(y_real, y_predict)
+  corval = cor(y_real, y_predict)
+  RMSEP = vrmsep(y_real, y_predict)
+  
+  print("Perfomances in CV")
+  print(paste("R2=", valr2, sep = ""))
+  print(paste("Cor=", corval, sep = ""))
+  print(paste("RMSEP=", RMSEP, sep = ""))
+  
+  
+  png(paste(prout, "PerfCARTRegCV", length(lfolds), ".png", sep = ""), 800, 800)
+  plot(y_real, y_predict, type = "n")
+  text(y_real, y_predict, labels = names(y_predict), cex = 0.8)
+  abline(a = 1, b = 1, col = "red", lty = 3)
+  dev.off()
+  
+  dpred = cbind(y_predict, y_real)
+  colnames(dpred) = c("Predict", "Real")
+  write.table(dpred, file = paste(prout, "PerfCARTRegCV", length(lfolds), ".txt", sep = ""), sep = "\t")
+  
+}
 
 #####################
 #  classification   #
@@ -828,6 +893,7 @@ CARTClassCV = function(lfolds, prout){
     vpred[which(vpred < 0.5)] = 0
     vpred[which(vpred >= 0.5)] = 1
     
+    plotcp(modelCART)
     # plot tree in pdf
     rpart.plot( modelCART , # middle graph
                extra=104, box.palette="GnBu",
@@ -840,9 +906,6 @@ CARTClassCV = function(lfolds, prout){
     k = k + 1
   }
   dev.off()
-  
-  print(y_real)
-  print(y_predict)
   
   # performances
   lpref = classPerf(y_real, y_predict)
@@ -866,6 +929,8 @@ CARTClassCV = function(lfolds, prout){
   print(paste("se=", se, sep = ""))
   print(paste("sp=", sp, sep = ""))
   print(paste("mcc=", mcc, sep = ""))
+  print("")
+  print("")
   
 }
 

@@ -94,3 +94,8 @@ def DescAnalysis(pdesc, paffinity, prout, valcor, PCA, corMatrix, hist, dendo, l
 
     print cmdVisu
     system(cmdVisu)
+
+
+def plotMICByCpd(pfilin):
+
+    return

@@ -1,13 +1,13 @@
 from copy import deepcopy
 from numpy import mean, std
 
-from pymol._cmd import color
-
+import runExternalSoft
 import toolbox
 
 class CHEMBL:
     def __init__(self, pfilin):
         self.pfilin = pfilin
+
 
     def parseCHEMBLFile(self):
 
@@ -383,6 +383,37 @@ class CHEMBL:
             filout.close()
 
         self.tableorgafull = dout
+
+
+
+    def compareMICorga(self, prout):
+
+        if not "tableorgafull" in dir(self):
+            print "ERROR INPUT - tableorgafull"
+
+        lorga = self.tableorgafull.keys()
+        pfilout = prout + "MIC-full.txt"
+        filout = open(pfilout, "w")
+        filout.write("CMPD_CHEMBLID\t" + "\t".join(lorga) + "\n")
+
+        nbComp = len(self.tableorgafull[lorga[0]])
+        i = 0
+        while i < nbComp:
+            nameCpd = self.tableorgafull[lorga[0]][i]["CMPD_CHEMBLID"]
+            filout.write(nameCpd + "\t" + str(self.tableorgafull[lorga[0]][i]["STANDARD_VALUE"]))
+
+            for orga in lorga[1:]:
+                for cpd in self.tableorgafull[orga]:
+                    if cpd["CMPD_CHEMBLID"] == nameCpd:
+                        filout.write("\t" + str(cpd["STANDARD_VALUE"]))
+                        break
+
+            filout.write("\n")
+            i += 1
+        filout.close()
+        runExternalSoft.plotMICByCpd(pfilout)
+
+
 
     def writeTable(self, pfilout):
 

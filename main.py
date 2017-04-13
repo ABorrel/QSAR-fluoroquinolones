@@ -7,7 +7,7 @@ import runExternalSoft
 
 
 
-def CleanCHEMBLFile(pfilin, pfilout):
+def CleanCHEMBLFile(pfilin, presult):
 
     # add short cut if filtered table exist !!!!!
 
@@ -15,21 +15,18 @@ def CleanCHEMBLFile(pfilin, pfilout):
     table.parseCHEMBLFile()
     print len(table.table), "Init"
 
-    #table.selectConfidencecore(cutoff=9)
-    #print len(table.table), "prot confidence"
-
     table.getOnlyExactConstant()
     print len(table.table), "strict value"
 
     table.getOnlyMIC()
     print len(table.table), "MIC"
+    table.writeTable(presult + "filtered_MIC.txt")
 
-    table.MICbyOrganisms(pfilout[:-4] + "_MIC-orga.txt")
-    table.writeTable(pfilout)
+    table.MICbyOrganisms(presult + "MIC-byorga.txt")
 
-    table.completeMatrixMICByorganism(pfilout[:-4] + "_MIC_", nborga=4)
+    table.completeMatrixMICByorganism(presult + "MIC_", nborga=4)
+    table.compareMICorga(presult) # maybe analyse
 
-    return table
 
 
 
@@ -61,27 +58,32 @@ def AnalyseDesc(pdesc, pdata, prout, PCA="1", dendo="1", cormatrix="1", hist="1"
 ##########
 
 pCHEMBL = "/home/aborrel/fluoroquinolones/compound-bioactiveCHEMBL.txt"
-pCHEMBLClean = "/home/aborrel/fluoroquinolones/compound_filtered_target.txt"
+presult = "/home/aborrel/fluoroquinolones/results/"
 
-pCHEMBLCleanMIC = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC.txt"
+dtab = CleanCHEMBLFile(pCHEMBL, presult)
 
 
-#ltab = CleanCHEMBLFile(pCHEMBL, pCHEMBLClean)
-#dtab = CleanCHEMBLFile(pCHEMBL, pCHEMBLCleanMIC)
 
+
+
+############ DESC  ###############
+##################################
 pdesc = pathFolder.PR_DESC
 plog = pathFolder.PR_DESC + "log.txt"
 
+
+
+
 #MolecularDesc(dtab.tableorgafull, pdesc, plog)
 
-lfiledesorga = listdir(pathFolder.PR_DESC)
-for fileorga in lfiledesorga:
-    pfiledesc = pathFolder.PR_DESC + fileorga
-    print fileorga[-3:]
-    if fileorga[-3:] == "csv":
-        orga = fileorga.split("_")[1][:-4]
-        AnalyseDesc(pfiledesc, pCHEMBLCleanMIC[:-4] + "_MIC_" + orga + ".csv", pathFolder.PR_DESC + orga, corcoef=0.7,
-                    logaff=1)
+#lfiledesorga = listdir(pathFolder.PR_DESC)
+#for fileorga in lfiledesorga:
+#    pfiledesc = pathFolder.PR_DESC + fileorga
+#    print fileorga[-3:]
+#    if fileorga[-3:] == "csv":
+#        orga = fileorga.split("_")[1][:-4]
+#        AnalyseDesc(pfiledesc, pCHEMBLCleanMIC[:-4] + "_" + orga + ".csv", pathFolder.PR_DESC + orga, corcoef=0.7,
+#                    logaff=1)
 
 
 

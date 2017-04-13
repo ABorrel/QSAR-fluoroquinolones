@@ -57,8 +57,6 @@ samplingDataNgroupClass = function (t_din, i_nb_group, s_nameclass){
 }
 
 
-
-
 samplingDataFraction = function (t_din, fract){
   
   # sample data
@@ -73,8 +71,6 @@ samplingDataFraction = function (t_din, fract){
   return (list(dtrain, dtest))
   
 }
-
-
 
 
 samplingDataNgroup = function (t_din, i_nb_group){
@@ -118,8 +114,6 @@ samplingDataNgroup = function (t_din, i_nb_group){
 }
 
 
-
-
 #################################
 #   Control dataset integrity   #
 #################################
@@ -127,8 +121,6 @@ samplingDataNgroup = function (t_din, i_nb_group){
 controlDatasets = function(ldataset, prin){
   
   nbsplit = length(ldataset)
-  
-  print (nbsplit)
   
   pdf(paste(prin,".pdf", sep = ""), width = 10, height = 10)
   
