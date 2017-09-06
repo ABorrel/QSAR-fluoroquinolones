@@ -96,3 +96,22 @@ class sdf:
 
             self.lposefiles.append(pfilout)
 
+
+    def removeDuplicate(self, colID):
+
+        lduplicate = []
+        i = 0
+        imax = len(self.lc)
+        while i < imax:
+            if self.lc[i][colID] in lduplicate:
+                del self.lc[i]
+                imax = imax-1
+                continue
+            else:
+                lduplicate.append(self.lc[i][colID])
+                i += 1
+
+
+
+
+        return

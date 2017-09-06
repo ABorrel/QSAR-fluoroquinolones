@@ -16,7 +16,8 @@ class CHEMBL:
         llines = filin.readlines()
         filin.close()
 
-        lhead = llines[0].split("\t")[0:-1]
+        #lhead = llines[0].split("\t")[0:-1] CHECK WHY -1
+        lhead = llines[0].strip().split("\t")
         print lhead
 
         i = 1
@@ -392,25 +393,32 @@ class CHEMBL:
             print "ERROR INPUT - tableorgafull"
 
         lorga = self.tableorgafull.keys()
-        pfilout = prout + "MIC-full.txt"
+        pfilout = prout + "MIC-full"
         filout = open(pfilout, "w")
         filout.write("CMPD_CHEMBLID\t" + "\t".join(lorga) + "\n")
+
+        pfiloutAssay = prout + "MIC-full_assay"
+        filoutassay = open(pfiloutAssay, "w")
+        filoutassay.write("CMPD_CHEMBLID\t" + "\t".join(lorga) + "\n")
 
         nbComp = len(self.tableorgafull[lorga[0]])
         i = 0
         while i < nbComp:
             nameCpd = self.tableorgafull[lorga[0]][i]["CMPD_CHEMBLID"]
             filout.write(nameCpd + "\t" + str(self.tableorgafull[lorga[0]][i]["STANDARD_VALUE"]))
+            filoutassay.write(nameCpd + "\t" + str(self.tableorgafull[lorga[0]][i]["ASSAY_CHEMBLID"]))
 
             for orga in lorga[1:]:
                 for cpd in self.tableorgafull[orga]:
                     if cpd["CMPD_CHEMBLID"] == nameCpd:
                         filout.write("\t" + str(cpd["STANDARD_VALUE"]))
+                        filoutassay.write("\t" + str(cpd["ASSAY_CHEMBLID"]))
                         break
-
             filout.write("\n")
+            filoutassay.write("\n")
             i += 1
         filout.close()
+        filoutassay.close()
         runExternalSoft.plotMICByCpd(pfilout)
 
 

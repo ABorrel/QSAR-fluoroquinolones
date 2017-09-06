@@ -56,6 +56,34 @@ samplingDataNgroupClass = function (t_din, i_nb_group, s_nameclass){
   return (output)
 }
 
+sampligDataFractionCluster = function(t_din, fract, pcluster){
+  
+  dclust = read.csv(pcluster, sep=",", header = TRUE)
+  print (t_din)
+  lclust = unique(dclust[,2])
+  
+  dtrain = NULL
+  dtest = NULL
+  for (clust in lclust){
+    lcpIDclust = dclust[which(dclust[,2] == clust),1]
+    descclust = t_din[lcpIDclust,]
+    
+    # sample data
+    v_sample = sample (dim (descclust)[1])
+    
+    # ind limit
+    i_limitc = round((dim (descclust)[1]) * fract)
+    
+    dtrain = rbind(dtrain, descclust[v_sample[(i_limitc + 1):(length (v_sample))],])
+    dtest = rbind(dtest, descclust[v_sample[1:i_limitc],])
+  }
+  print (dtrain)
+  print (dtest)
+  # sample data
+  return (list(dtrain, dtest))
+  
+}
+
 
 samplingDataFraction = function (t_din, fract){
   

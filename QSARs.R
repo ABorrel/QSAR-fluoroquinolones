@@ -10,59 +10,20 @@ library (rpart)
 #     MAIN     #
 ################
 
-#args <- commandArgs(TRUE)
-#pdesc = args[1]
-#pdata = args[2] #to take affinity or class
-#prout = args[3]
-
-# regression model
-#modelPLS = args[4]
-#modelSVM = args[5]
-
-# Machine learning parameters
-#nbCV = args[6]
-#valcor = 0.7
-
-# Staphylococcus-aureus
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Staphylococcus-aureus.csv"
-#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Staphylococcus-aureus.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/model/Staphylococcus-aureus/" 
-
-# Pseudomonas-aeruginosa
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Pseudomonas-aeruginosa.csv"
-#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Pseudomonas-aeruginosa.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/model/Pseudomonas-aeruginosa/"
-
-# Escherichia-coli
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Escherichia-coli.csv"
-#pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Escherichia-coli.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/model/Escherichia-coli/"
-
-# Streptococcus-pneumoniae
-
-pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_Streptococcus-pneumoniae.csv"
-pdata = "/home/aborrel/fluoroquinolones/results/compound_filtered_MIC_MIC_Streptococcus-pneumoniae.csv"
-prout = "/home/aborrel/fluoroquinolones/results/model/Streptococcus-pneumoniae/"
-
-# Melender FLV
-#pdesc = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/desc.csv"
-#pdata = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/Carbamate.csv"
-#prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/FLV/" 
-
-# Melender OD
-#pdesc = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/desc.csv"
-#pdata = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/Carbamate.csv"
-#prout = "/home/aborrel/fluoroquinolones/fluoroquinole_melender/desc/OD/" 
-
+args <- commandArgs(TRUE)
+pdesc = args[1]
+pdata = args[2] #to take affinity or class
+pcluster = args[3]
+prout = args[4]
 
 
 # model regression #
 ####################
-modelPCRreg = 1
-modelPLSreg = 1
-modelSVMreg = 1
-modelRFreg = 1
-modelCartreg = 1
+modelPCRreg = 0
+modelPLSreg = 0
+modelSVMreg = 0
+modelRFreg = 0
+modelCartreg = 0
 chemmodlabreg = 1
 
 
@@ -70,11 +31,11 @@ chemmodlabreg = 1
 ########################
 modelPCRclass = 0
 modelPLSclass = 0
-modelSVMclass = 1
-modelRFclass = 1
+modelSVMclass = 0
+modelRFclass = 0
 modelLDA = 0
-modelCartclass = 1
-chemmodlabclass = 1
+modelCartclass = 0
+chemmodlabclass = 0
 
 
 # Paramaters global #
@@ -84,8 +45,7 @@ valcor = 0.8
 logaff = 1
 maxquantile = 85
 cutoffAff = "med" 
-proptraintest = 0.20
-
+proptraintest = 0.15
 
 #########################
 #    PRINT PARAMETERS   #
@@ -128,7 +88,6 @@ print("")
 # Process descriptors matrix #
 ##############################
 
-
 dglobal = openData(pdesc, valcor, prout, c(1,2))
 dglobal = dglobal[[1]]
 
@@ -150,15 +109,14 @@ print(paste("Data after filtering: dim = ", dim(dglobal)[1], dim(dglobal)[2], se
 # order with affinity #
 #######################
 # Opening
-ddata = read.table(pdata, sep = "\t", header = TRUE)
+daffinity = read.csv(pdata, sep = ",", header = TRUE)
 
-daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] # !!!!!!!!!!!!!
+#daffinity = ddata[,c("CMPD_CHEMBLID", "STANDARD_VALUE")] # !!!!!!!!!!!!!
 #daffinity = ddata[,c("ID", "Odavg")]
 #daffinity = ddata[,c("ID", "FLDavg")]
 
 #print(daffinity)
 rownames(daffinity) = daffinity[,1]
-
 dglobalAff = cbind(dglobal[rownames(daffinity),], activity=daffinity[,2])
 
 
@@ -169,6 +127,9 @@ dglobalAff = na.omit(dglobalAff)
 ##### IMPORTANT RENAME AFF  #####
 #################################
 colnames(dglobalAff) = c(colnames(dglobal), "Aff")
+
+# control affinity
+#print (dglobalAff[,"Aff"])
 
 # control distribution affinity and log10
 #########################################
@@ -196,8 +157,6 @@ controlDatasets(lgroupCV, paste(prout, "ChecksamplingCV", sep = ""))
 
 
 print(paste("Data size final=>", dim(dglobalAff)[1], dim(dglobalAff)[2]))
-
-
 
 
 ##### REGRESSION MODELS #########
@@ -231,7 +190,7 @@ if (modelPLSreg == 1){
 
 if(modelSVMreg == 1){
   vgamma = 2^(-1:1)
-  vcost = 2^(2:4)
+  vcost = 2^(2:8)
   SVMRegCV(lgroupCV, vgamma, vcost, prout)
 }
 
@@ -251,6 +210,21 @@ if (modelRFreg == 1){
   lfoldtrain = samplingDataNgroup(dtrain, nbCV)
   parameters = RFGridRegCV(vntree, vmtry, lfoldtrain, paste(prout, "trainReg", sep = ""))
   RFreg(dtrain, dtest,parameters[[1]], parameters[[2]], prout)
+  
+  #### case of external set #
+  ###########################
+  #print ("======External SET======")
+  #dtest = read.table(ptest, sep = "\t", header = TRUE)
+  #Aff = rep(0, dim(dtest)[1])
+  #rownames(dtest) = dtest[,1]
+  #dtest = dtest[,-1]
+  #dtest = dtest[,-1]
+  #dtest = cbind(dtest, Aff)
+  #  
+  #lfoldtrain = samplingDataNgroup(dglobalAff, nbCV)
+  #parameters = RFGridRegCV(vntree, vmtry, lfoldtrain, paste(prout, "trainReg", sep = ""))
+  #RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], prout)
+  
 }
 
 
@@ -261,6 +235,7 @@ if (modelRFreg == 1){
 
 if(modelCartreg == 1){
   CARTRegCV(lgroupCV, prout)
+  CARTreg(ltraintest[[1]], ltraintest[[2]], prout)
 }
 
 
@@ -273,7 +248,7 @@ if(chemmodlabreg == 1){
   colnames(dchem)[1] = "Aff"
   
   pdf(paste(prout, "Reg_chemmolab.pdf", sep = ""))
-  fit = ModelTrain(data = dchem, ids = FALSE)
+  fit = ModelTrain(dchem, ids = FALSE)
   CombineSplits(fit, metric = "R2")
   CombineSplits(fit, metric = "rho")
   dev.off()
@@ -292,11 +267,14 @@ if (cutoffAff == "med"){
 }else{
   cutoffAff = as.double(cutoffAff)
 }
+print (paste("Cutoff -> ", cutoffAff, sep = ""))
 i1 = which(dglobalAff[,c("Aff")] > cutoffAff)
 dglobalAff[,c("Aff")] = 0 
 dglobalAff[i1,c("Aff")] = 1
 
 lgroupCV = samplingDataNgroupClass(dglobalAff, nbCV, "Aff")
+
+#ltraintest = sampligDataFractionCluster(dglobalAff, proptraintest, )
 ltraintest = samplingDataFraction(dglobalAff, proptraintest) 
 
 
@@ -324,6 +302,20 @@ if (modelRFclass == 1){
   lfoldtrain = samplingDataNgroup(dtrain, nbCV)
   parameters = RFGridClassCV(vntree, vmtry, lfoldtrain, paste(prout, "trainClass", sep = ""))
   RFClass(dtrain, dtest, parameters[[1]], parameters[[2]], paste(prout, "traintestperf", sep = ""))
+  
+  #### case of external set #
+  ###########################
+  print ("======External SET======")
+  dtest = read.table(ptest, sep = "\t", header = TRUE)
+  Aff = rep(0, dim(dtest)[1])
+  rownames(dtest) = dtest[,1]
+  dtest = dtest[,-1]
+  dtest = dtest[,-1]
+  dtest = cbind(dtest, Aff)
+  
+  lfoldtrain = samplingDataNgroup(dglobalAff, nbCV)
+  parameters = RFGridClassCV(vntree, vmtry, lfoldtrain, paste(prout, "trainReg", sep = ""))
+  RFClass(dtrain, dtest, parameters[[1]], parameters[[2]], prout)
   
 }
 

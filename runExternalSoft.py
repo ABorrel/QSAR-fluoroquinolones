@@ -1,4 +1,5 @@
 from os import system, path, remove
+from pymol.gui import cmd
 from re import search
 from time import sleep
 
@@ -87,15 +88,44 @@ def PCAplot(pfildesc, pfildata, corcoef, prout):
     return
 
 
-def DescAnalysis(pdesc, paffinity, prout, valcor, PCA, corMatrix, hist, dendo, logaff):
+def DescAnalysis(pdesc, paffinity, prout, valcor, maxquantile, logaff, PCA, corMatrix, hist, dendo, cluster):
 
-    cmdVisu = "./visualization.R " + str(pdesc) + " " + str(paffinity) + " " + str(prout) + " " + str(valcor) + " " + \
-        str(PCA) + " " + str(corMatrix) + " " + str(hist) + " " + str(dendo) + " " + str(logaff)
+    cmdDescAnalysis = "./descAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(prout) + " " + str(valcor) + " " + \
+        str(maxquantile) + " " + str(logaff) + " " + str(PCA) + " " + str(corMatrix) + " " + str(hist) + \
+        " " + str(dendo) + " " + str(cluster)
 
-    print cmdVisu
-    system(cmdVisu)
+    print cmdDescAnalysis
+    system(cmdDescAnalysis)
+
+
+def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff):
+
+    cmdClusterAnalysis = "./clusterAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(pcluster) + " " + \
+        str(prout) + " " + str(valcor) + " " + str(maxquantile) + " " + str(logaff)
+
+    print cmdClusterAnalysis
+    system(cmdClusterAnalysis)
 
 
 def plotMICByCpd(pfilin):
 
-    return
+    cmdplot = "./plotMIC.R " + str(pfilin)
+    print cmdplot
+    system(cmdplot)
+
+
+
+def babelConvertSMItoSDF(pfilesmi):
+
+    cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf 2>/dev/null"
+    system(cmd_convert)
+    return pfilesmi[0:-4] + ".sdf"
+
+
+def QSARs(pdesc, paff, pcluster, prout, reg=1, clas=1):
+
+    cmd_QSAR = "./QSARs.R " + pdesc + " " + paff + " " + pcluster + " " + prout + " >" + prout + "perf.txt&"
+    print cmd_QSAR
+    system(cmd_QSAR)
+
+    return prout + "perf.txt"

@@ -2,7 +2,7 @@
 source ("tool.R")
 source("cardMatrix.R")
 library(fastICA)
-
+library(ggplot2)
 
 
 generatePCAcoords = function(din){
@@ -88,7 +88,7 @@ PCA3D = function(din, path_result){
 }
 
 
-PCAplot = function (din, path_result){
+PCAplot = function (din, daff, prout){
   
   dinScale = scale(din)
   
@@ -100,38 +100,61 @@ PCAplot = function (din, path_result){
   rownames (cp) = colnames (dinScale)
   colnames (cp) = colnames (dinScale)
   data_plot = as.matrix(dinScale)%*%cp
+  factor = factorACP (data_plot, cp)
+  data_plot = as.data.frame(data_plot[,c(1,2)])
   
+  colnames(data_plot) = c("X", "Y")
+  
+  # calibrate affinity for color
+  maxMatrix = max(daff)
+  minMatrix = min(daff)
+  for(i in seq(1, dim(daff)[2])){
+    daff[which(daff[,i] == max(daff[,i])), i] = maxMatrix
+    daff[which(daff[,i] == min(daff[,i])), i] = minMatrix
+  }
+  
+  # projection point
+  aff = daff[,"Streptococcus.pneumoniae"]
+  p <- ggplot(data_plot, aes(X,Y)) + 
+    geom_point(size=1.5, aes(color = aff)) + 
+    scale_color_continuous(name='-log10(MIC)',low='red', high='lightgreen') +
+    labs(x =  paste("CP1: ", signif (var_cap[1], 4), "%", sep = "") , y = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""))
+  ggsave(paste(prout, "Streptococcus-pneumoniae_PCA.png", sep = ""), dpi = 300, width = 8, height = 8)
+  
+  
+  aff = daff[,"Pseudomonas.aeruginosa"]
+  p <- ggplot(data_plot, aes(X,Y)) + 
+    geom_point(size=1.5, aes(color = aff)) + 
+    scale_color_continuous(name='-log10(MIC)',low='red', high='lightgreen') +
+    labs(x =  paste("CP1: ", signif (var_cap[1], 4), "%", sep = "") , y = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""))
+  ggsave(paste(prout, "Pseudomonas-aeruginosa_PCA.png", sep = ""), dpi = 300, width = 8, height = 8)
+  
+  
+  aff = daff[,"Staphylococcus.aureus"]
+  p <- ggplot(data_plot, aes(X,Y)) + 
+    geom_point(size=1.5, aes(color = aff)) + 
+    scale_color_continuous(name='-log10(MIC)',low='red', high='lightgreen') +
+    labs(x =  paste("CP1: ", signif (var_cap[1], 4), "%", sep = "") , y = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""))
+  ggsave(paste(prout, "Staphylococcus-aureus_PCA.png", sep = ""), dpi = 300, width = 8, height = 8)
+  
+  
+  aff = daff[,"Escherichia.coli"]
+  p <- ggplot(data_plot, aes(X,Y)) + 
+    geom_point(size=1.5, aes(color = aff)) + 
+    scale_color_continuous(name='-log10(MIC)',low='red', high='lightgreen') +
+    labs(x =  paste("CP1: ", signif (var_cap[1], 4), "%", sep = "") , y = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""))
+  ggsave(paste(prout, "Escherichia-coli_PCA.png", sep = ""), dpi = 300, width = 8, height = 8)
+  
+  
+  # projection descriptors #
+  ##########################
   #col.desc = colorDesc(colnames(din))
-  
   col.desc = "black"
-  colpoint <- colorRampPalette(c("lightgreen", "red"))
-  
+  color_arrow = "black"
   print(col.desc)
   
-  png (paste (path_result, "_text.png", sep = ""), 1700, 1500)
-  factor = factorACP (data_plot, cp)
   
-  color_arrow = col.desc[rownames(cp)]
-  par(mar=c(8,8,8,8))
-  plot(data_plot[,1],data_plot[,2], pch=20, main = paste (var_cap[1],var_cap[2], sep = "_" ), xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 4, type = "n")
-  text (data_plot[,1],data_plot[,2], label = rownames (din), cex = 2.5, col = colpoint(dim(data_plot)[1]))
-  abline(h=0,v=0)
-  warnings ()
-  dev.off()
-  
-
-  
-  png (paste (path_result, "_color.png", sep = ""), 1700, 1500)
-  factor = factorACP (data_plot, cp)
-  color_arrow =col.desc
-  par(mar=c(8,8,8,8))
-  plot(data_plot[,1],data_plot[,2], pch=20, col = colpoint(dim(data_plot)[1]), xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 4)
-  abline(h=0,v=0)
-  warnings ()
-  dev.off()
-  
-  
-  png (paste (path_result, "_descriptor.png", sep = ""), 1700, 1500)
+  png (paste (prout, "PCA_descriptor.png", sep = ""), 1700, 1500)
   par(mar=c(8,8,8,8))
   plot(data_plot[,1],data_plot[,2], xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), pch=20, cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 4, type = "n")
   #points (data_plot[,1][length (color_point):dim(data_plot)[1]],data_plot[,2][length (color_point):dim(data_plot)[1]], pch=17, cex = 4, col = color_point2)
@@ -141,7 +164,7 @@ PCAplot = function (din, path_result){
   dev.off()
   
   
-  svg (file = paste (path_result, "_descriptor.svg", sep = ""), 25, 25)
+  svg (file = paste (prout, "PCA_descriptor.svg", sep = ""), 25, 25)
   par(mar=c(8,8,8,8))
   plot(data_plot[,1],data_plot[,2], main = "", xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 6, cex.main = 4, cex.axis = 1.75, cex = 6, type = "n")
   #points (data_plot[,1][length (color_point):dim(data_plot)[1]],data_plot[,2][length (color_point):dim(data_plot)[1]], pch=17, cex = 4, col = color_point2)

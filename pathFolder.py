@@ -26,3 +26,11 @@ def analyses(psub):
         except: pass
 
     return PR_ANALYSIS + psub + "/"
+
+def createFolder(prin):
+
+    try: makedirs(prin)
+    except: pass
+
+    return prin
+

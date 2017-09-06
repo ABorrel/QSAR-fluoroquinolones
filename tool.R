@@ -376,7 +376,7 @@ openData = function (pfilin, valcor, prout, vexclude){
 
 	# deleted line with NA
 	#rownames (desc) = seq (1, dim(desc)[1])
-	desc = na.omit(desc)
+	desc = na.omit(desc) # remove NA
   #print (dim(desc))
   cexclude = desc[,vexclude]
   #print(head(cexclude))
