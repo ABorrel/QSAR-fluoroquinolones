@@ -107,6 +107,42 @@ def sameMagnitude(lval):
         return 1
 
 
+def tableTolist(pfilin):
+
+    lout = []
+    filin = open(pfilin, "r")
+    llrows = filin.readlines()
+    filin.close()
+
+    lheader = llrows[0].strip().split("\t")
+    for row in llrows[1:]:
+        lval = row.strip().split("\t")
+        dtemp = {}
+        i = 0
+        while i < len(lval):
+            dtemp[lheader[i]] = lval[i]
+            i += 1
+        lout.append(dtemp)
+    return lout
+
+
+
+def formatClusterTable(pfileCluster):
+    filecluster = open(pfileCluster, "r")
+    lcompound = filecluster.readlines()
+    filecluster.close()
+
+    dout = {}
+    for compound in lcompound[1:]:
+        compound = compound.strip().replace("\"", "")
+        name = compound.split(",")[0]
+        cluster = compound.split(",")[-1]
+
+        if not cluster in dout.keys():
+            dout[cluster] = []
+        dout[cluster].append(name)
+
+    return dout
 
 
 

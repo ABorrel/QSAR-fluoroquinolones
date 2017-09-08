@@ -297,6 +297,7 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   print(paste("- RMSEP=", rmseptest, sep = ""))
   print(paste("- R2=", r2test, sep = ""))
   
+  
   return(modelpls)
   
 }

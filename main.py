@@ -4,7 +4,7 @@ import tableParse
 import liganddescriptors
 import pathFolder
 import runExternalSoft
-
+import bycluster
 
 
 def CleanCHEMBLFile(pfilin, presult):
@@ -81,12 +81,6 @@ def converToSDF(dtable, prsdf):
 
 
 
-#def AnalyseDesc(pdesc, pdata, prout, PCA="1", dendo="1", cormatrix="1", hist="1", corcoef=0.0, cluster = "1", logaff="1"):
-
-#    runExternalSoft.DescAnalysis(pdesc, pdata, prout, corcoef, PCA, cormatrix, hist, dendo, cluster, logaff)
-
-#    return
-
 ##########
 #  MAIN  #
 ##########
@@ -104,15 +98,20 @@ dtab = CleanCHEMBLFile(pCHEMBL, presult)
 prdesc = pathFolder.createFolder(pathFolder.PR_DESC)
 plog = prdesc + "log.txt"
 
-# convert for protein #
-#######################
-#converToSDF(dtab.tableorgafull, presult + "/sdfConvert/")
 
 # Descriptors computation and variable #
 ########################################
 pdesc = MolecularDesc(dtab.tableorgafull, prdesc, plog)
 corcoef = 0.8
 maxQuantile = 85
+
+
+#######################
+# Cross MIC analysis  #
+#######################
+prcorAnalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CorrMICAnalysis/")
+#runExternalSoft.corAnalysis(paffinity_currated, prcorAnalysis)
+
 
 
 #######################
@@ -124,16 +123,20 @@ pranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "desc_analysis/" + s
 
 # desc and visualisation #
 ##########################
-runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=1, hist=1, dendo=1, cluster=1)# used to find the different stable cluster
+#runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=1, hist=1, dendo=1, cluster=1)# used to find the different stable cluster
 
 
 # analysis by cluster and cross #
 #################################
-pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/Escherichia-coli-0.8/Table_hclust_ward.D2_gap_stat.csv"
+pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
 
 # cross analysis
-prclusteranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CrossClusterAnalysis/" + str(pcluster[5:-4].split("/")[-1]) + "/")
-runExternalSoft.clusterAnalysis(pdesc, paffinity_currated, pcluster, prclusteranalysis)
+prclusteranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CrossClusterAnalysis/" + str(pcluster.split("/")[-1][6:-4]) + "/")
+runExternalSoft.clusterAnalysis(pdesc, paffinity_currated, pcluster, prclusteranalysis, corcoef, maxQuantile)
+
+# extract compound by cluster #
+###############################
+bycluster.extractByCluster(pcluster, prclusteranalysis, pdesc)
 
 #################
 #  QSAR models  #
@@ -143,12 +146,12 @@ prQSAR = pathFolder.createFolder(pathFolder.PR_RESULT + "QSARS/")
 
 
 # split dataset based on descriptors
-lfileTrainTest = runExternalSoft.prepareDataset(pdesc, prQSAR, corcoef=corcoef, maxQuantile=maxQuantile, valSplit=valSplit)
+dfileTrainTest = runExternalSoft.prepareDataset(pdesc, paffinity_currated, prQSAR, corcoef=corcoef, maxQuantile=maxQuantile, valSplit=valSplit)
 
 # run specifically by bacteria
-for orga in dtab.tablebyorga.keys():
-    prQSARorga = pathFolder.createFolder(prQSAR + "/" + orga + "/")
-
-    runExternalSoft.QSARs(lfileTrainTest[0], lfileTrainTest[1], paffinity_currated, pcluster, prQSARorga)
+for bacteria in dfileTrainTest.keys():
+    print dfileTrainTest[bacteria]
+    prQSARorga = pathFolder.createFolder(prQSAR + bacteria + "/")
+    runExternalSoft.QSARsReg(dfileTrainTest[bacteria]["train"], dfileTrainTest[bacteria]["test"], pcluster, prQSARorga)
 
 

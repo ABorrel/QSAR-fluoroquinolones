@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 source("PCAplot.R")
+library("ggplot2")
 
 
 ###############################
@@ -152,12 +153,23 @@ controlDatasets = function(ldataset, prin){
   
   pdf(paste(prin,".pdf", sep = ""), width = 10, height = 10)
   
+  
   colorrainbow = rainbow(nbsplit)
   i = 1
   colorpoint = NULL
   dPCA = NULL
+  dglobal = NULL
   for (d in ldataset){
-    hist(d[,(dim(d)[2])], col = "grey", main = paste("Fold ", i, "-Dim=", dim(d)[1], sep = ""))
+    dglobal = rbind(dglobal,d)
+    h = ggplot(d, aes(x=Aff)) + 
+      geom_histogram(aes(y=..density..),     # Histogram with density instead of count on y-axis
+                     binwidth=.5,
+                     colour="black", fill="white") +
+      labs(x = "-log10(MIC)", y = "Frequencies") + 
+      ggtitle(paste("Fold ", i, "-Dim=", dim(d)[1], sep = ""))+
+      xlim (c(-2.5, 2.5))+
+      geom_density(alpha=.2, fill="#FAFFA5")
+    print(h)
     
     #points for PCA
     colorpoint = append(colorpoint, rep(colorrainbow[i], (dim(d)[1])))
@@ -165,12 +177,22 @@ controlDatasets = function(ldataset, prin){
     i = i + 1
   }
   
+  h = ggplot(dglobal, aes(x=Aff)) + 
+    geom_histogram(aes(y=..density..),     # Histogram with density instead of count on y-axis
+                   binwidth=.5,
+                   colour="black", fill="white") +
+    labs(x = "-log10(MIC)", y = "Frequencies") + 
+    ggtitle(paste("Fold ", i, "-Dim=", dim(dglobal)[1], sep = "")) +
+  xlim (c(-2.5, 2.5))+
+    geom_density(alpha=.2, fill="#FAFFA5")
+  print (h)
+  
   # plot PCA
   dplot = generatePCAcoords(dPCA)
   var_cap = dplot[[2]]
   data_plot = dplot[[1]]
   #par(mar=c(8,8,8,8))
-  plot(data_plot[,1],data_plot[,2], pch=20, col = colorpoint, xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 2, cex.main = 2, cex.axis = 1.75, cex = 2)
+  plot(data_plot[,1],data_plot[,2], pch=20, col = colorpoint, xlab = paste("CP1: ", signif (var_cap[1], 4), "%", sep = ""), ylab = paste("CP2: ", signif (var_cap[2], 4), "%", sep = ""), cex.lab = 1.5, cex.main = 2, cex.axis = 1.5, cex = 2)
   abline(h=0,v=0)
   dev.off()
   

@@ -1,4 +1,4 @@
-from os import system, path, remove
+from os import system, path, remove, listdir
 from pymol.gui import cmd
 from re import search
 from time import sleep
@@ -98,7 +98,7 @@ def DescAnalysis(pdesc, paffinity, prout, valcor, maxquantile, logaff, PCA, corM
     system(cmdDescAnalysis)
 
 
-def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff):
+def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff=1):
 
     cmdClusterAnalysis = "./clusterAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(pcluster) + " " + \
         str(prout) + " " + str(valcor) + " " + str(maxquantile) + " " + str(logaff)
@@ -122,10 +122,61 @@ def babelConvertSMItoSDF(pfilesmi):
     return pfilesmi[0:-4] + ".sdf"
 
 
-def QSARs(pdesc, paff, pcluster, prout, reg=1, clas=1):
+def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
 
-    cmd_QSAR = "./QSARs.R " + pdesc + " " + paff + " " + pcluster + " " + prout + " >" + prout + "perf.txt&"
+    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perf.txt&"
     print cmd_QSAR
     system(cmd_QSAR)
 
     return prout + "perf.txt"
+
+
+
+def molconvert(pfilin):
+
+    if path.exists(pfilin[:-3] + "jpeg"):
+        return pfilin[:-3] + "jpeg"
+    cmdconvert = "molconvert \"jpeg:w500,Q95,#ffffff\" " + pfilin + " -o " + pfilin[:-3] + "jpeg"
+    system(cmdconvert)
+
+
+
+def corAnalysis(paffinity_currated, prcorAnalysis):
+
+    cmd = "./corMIC.R " + str(paffinity_currated) + " " + str(prcorAnalysis)
+    print cmd
+    system(cmd)
+
+
+def prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit, logaff=1):
+
+
+    # extract train and test file
+    dfile = {}
+    lfile = listdir(prout)
+    for filedir in lfile:
+        if search("^train_", filedir):
+            bacteria = filedir.split("_")[-1][0:-4]
+            if not bacteria in dfile.keys():
+                dfile[bacteria] = {}
+            dfile[bacteria]["train"] = prout + filedir
+
+        elif search("^test_", filedir):
+            bacteria = filedir.split("_")[-1][0:-4]
+            if not bacteria in dfile.keys():
+                dfile[bacteria] = {}
+            dfile[bacteria]["test"] = prout + filedir
+
+    if dfile == {}:
+        cmd = "/QSARsPrep.R " + str(pdesc) + " " + str(paff) + " " + prout + " " + str(corcoef) + " " + str(
+            maxQuantile) + " " + str(valSplit) + " " + str(logaff)
+        print cmd
+        system(cmd)
+        return prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit)
+    else:
+        return dfile
+
+
+
+
+

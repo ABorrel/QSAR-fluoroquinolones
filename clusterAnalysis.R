@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 source ("tool.R")
 source("dendocircular.R")
+source("radialPlot.R")
 
 
 ################
@@ -12,20 +13,20 @@ pdesc = args[1]
 paff = args[2] #to take affinity
 pcluster = args[3]
 prout = args[4]
-valcor = as.double(args[4])
-maxQuantile = as.double(args[5])
-logaff = as.integer(args[6])
+valcor = as.double(args[5])
+maxQuantile = as.double(args[6])
+logaff = as.integer(args[7])
 
 
-pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-paff = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
+#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
+#paff = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
+#pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
+#prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
 
 #circularDendo = 1
-valcor = 0.80
-maxQuantile = 85
-logaff = 1
+#valcor = 0.80
+#maxQuantile = 85
+#logaff = 1
 #optimal_clustering = 1
 
 
@@ -53,7 +54,7 @@ print(dim(daffinity))
 
 # transform
 if(logaff == 1){
-  daffinity = log10(daffinity)
+  daffinity = -log10(daffinity)
 }
 
 # merge with data descriptors
@@ -69,8 +70,7 @@ daffinity = daffinity[lID,]
 
 dcluster = read.csv(pcluster)
 rownames(dcluster) = dcluster[,1]
-#print(dcluster)
-#dcluster = dcluster[lID,]
+dcluster = dcluster[lID,]
 
 
 print (dim(dcluster))
@@ -83,7 +83,12 @@ print (dim(daffinity))
 dendogramCluster(dglobal, daffinity, dcluster, prout)
 
 
+# radial plot by cluster #
+##########################
 
+lcluster = unique(dcluster[,2])
 
-
-
+for(cluster in lcluster){
+  dtemp = daffinity[which(dcluster[,2] == cluster),]
+  radialByCluster(dtemp, paste(prout, cluster, ".svg"))
+}
