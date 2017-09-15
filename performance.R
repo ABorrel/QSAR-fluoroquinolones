@@ -266,3 +266,20 @@ calR2 = function(dreal, dpredict){
 }
 
 
+MAE = function(dreal, dpredict){
+  
+  #dpredict = dpredict[rownames(dreal),]
+  
+  i = 1
+  imax = length(dreal)
+  
+  valout = 0
+  while(i <= imax){
+    valout = valout + (abs(dreal[i] - dpredict[i]))
+    i = i + 1
+  }
+  return(valout/imax)
+  
+  
+}
+

@@ -8,6 +8,7 @@ library (MASS)
 library(rpart)
 library(rpart.plot)
 library(e1071)
+library(ggplot2)
 
 ##################
 #    PCR MODELS  #
@@ -62,8 +63,7 @@ PCRgridCV = function(lfolds, prout){
     vcpR2 = append(vcpR2, R2cp)
   }
   
-  png(width = 960, height = 960, filename = paste(prout ,"gridPCRCV.png", sep = ""))
-  par(mfrow = c(2,2))
+  pdf(paste(prout ,"gridPCRCV", length(lfolds), ".pdf", sep = ""))
   plot(seq(1,length(vcpR2)), vcpR2, type = "l", cex = 3, main = paste("R2 by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "R2")
   plot(seq(1,length(vcpRMSEP)), vcpRMSEP, type = "l", cex = 3, main = paste("RMSEP by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "RMSEP")
   plot(seq(1,length(vcpcor)), vcpcor, type = "l", cex = 3, main = paste("Cor val by components in CV", length(lfolds), sep = ""), xlab = "Components", ylab = "Cor")
@@ -81,18 +81,17 @@ PCRgridCV = function(lfolds, prout){
   
   
   print(paste("Optimal component: ", nbCPoptimun, sep = ""))
-  print("Perfomances in CV")
+  print("Perfomances Grid in CV")
   print(paste("R2=", vcpR2[nbCPoptimun], sep = ""))
   print(paste("Cor=", vcpcor[nbCPoptimun], sep = ""))
   print(paste("RMSEP=", vcpRMSEP[nbCPoptimun], sep = ""))
   print("")
   print("")
   return (nbCPoptimun)
-  
 }
 
 # PCR - CV
-PCRCV = function(lfolds, nbcomp, prout){
+PCRCV = function(lfolds, nbcomp, dcluster, prout){
   
   # performance in CV and number of cmp
   # return best number of cmp
@@ -121,7 +120,6 @@ PCRCV = function(lfolds, nbcomp, prout){
     vreal = append(vreal, dtest[,"Aff"])
     i = i + 1
   }
-  
   corpred = cor(vreal, vpred)
   rmsepcp = vrmsep(vreal, vpred)
   R2cp = calR2(vreal, vpred)
@@ -131,11 +129,16 @@ PCRCV = function(lfolds, nbcomp, prout){
   pdf(paste(prout, "PerfPCRreg_CV", length(lfolds), ".pdf", sep = ""), 20, 20)
   plot(vreal, vpred, type = "n", cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 5)
   text(vreal, vpred, labels = names(vpred))
-  abline(a = 1, b = 1, col = "red", lty = 4)
+  abline(a = 0, b = 1, col = "red", lty = 4)
   
   plot(vreal, vpred, pch = 19, cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", lty = 4)
+  abline(a = 0, b = 1, col = "red", lty = 4)
   
+  # for cluster 
+  dcluster = dcluster[names(vpred)]
+  plot(vreal, vpred, type = "n", cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 5)
+  text(vreal, vpred, labels = dcluster, col = dcluster)
+  abline(a = 0, b = 1, col = "red", lty = 4)
   dev.off()  
   
   tperf = cbind(vpred, vreal)
@@ -151,11 +154,14 @@ PCRCV = function(lfolds, nbcomp, prout){
 }
   
 # PCR - real #
-PCRTrainTest = function(dtrain, dtest, nbcp){
+PCRTrainTest = function(dtrain, dtest, dcluster, nbcp){
   
   modelpcr = pcr(Aff~., data=dtrain, ncomp = nbcp)
   predpcrtest = predict(modelpcr, ncomp = nbcp, newdata = dtest)
   predpcrtrain = predict(modelpcr, ncomp = nbcp, newdata = dtrain)
+  
+  names(predpcrtrain) = rownames(dtrain)
+  names(predpcrtest) = rownames(dtest)
   
   cortrain = cor(dtrain[,"Aff"], predpcrtrain)
   cortest = cor(dtest[,"Aff"], predpcrtest)
@@ -166,6 +172,11 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
   R2train = calR2(dtrain[,"Aff"], predpcrtrain)
   R2test = calR2(dtest[,"Aff"], predpcrtest)
   
+  pdf(paste(prout, "PerfPCRreg_TrainTest.pdf", sep = ""), 20, 20)
+  
+
+  
+  # print performances
   print("====PCR model on external test====")
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim = ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
@@ -180,6 +191,34 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
   print("")
   print("")
   
+  
+  # train
+  plot(dtrain[,"Aff"], predpcrtrain, pch = 20, main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predpcrtrain), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtrain[,"Aff"], predpcrtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predpcrtrain), digits = 3)))
+  text(dtrain[,"Aff"], predpcrtrain, labels = names(predpcrtrain))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - train
+  dclusterTrain = dcluster[names(predpcrtrain)]
+  plot(dtrain[,"Aff"], predpcrtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predpcrtrain), digits = 3)))
+  text(dtrain[,"Aff"], predpcrtrain, labels = dclusterTrain, col = dclusterTrain)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # test
+  plot(dtest[,"Aff"], predpcrtest, pch = 20, main = paste("Correlation = ", round(cor(dtest[,"Aff"], predpcrtest), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtest[,"Aff"], predpcrtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predpcrtest), digits = 3)))
+  text(dtest[,"Aff"], predpcrtest, labels = names(predpcrtest))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - test
+  dclusterTest = dcluster[names(predpcrtest)]
+  plot(dtest[,"Aff"], predpcrtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predpcrtest), digits = 3)))
+  text(dtest[,"Aff"], predpcrtest, labels = dclusterTest, col = dclusterTest)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  dev.off()
+  
   return(modelpcr)
   
 }
@@ -191,7 +230,7 @@ PCRTrainTest = function(dtrain, dtest, nbcp){
 
 
 # PLS in cross validation
-PLSCV = function(lfolds, prout){
+PLSCV = function(lfolds, dcluster, prout){
   
   # performance in CV and number of cmp
   # return best number of cmp
@@ -242,9 +281,15 @@ PLSCV = function(lfolds, prout){
   
   plot(vreal, vpred, type = "n", cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 5)
   text(vreal, vpred, labels = names(vpred))
-  abline(a = 1, b = 1, col = "red", lty = 4)
+  abline(a = 0, b = 1, col = "red", lty = 4)
   plot(vreal, vpred, pch = 19, cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", lty = 4)
+  abline(a = 0, b = 1, col = "red", lty = 4)
+  
+  # by cluster
+  dcluster = dcluster[names(vpred)]
+  plot(vreal, vpred, type = "n", cex.lab = 2.5, main = paste("Correlation = ", round(cor(vreal, vpred), digits = 3)), cex = 5)
+  text(vreal, vpred, labels = dcluster, col = dcluster)
+  abline(a = 0, b = 1, col = "red", lty = 4)
   dev.off()
   
   # optimal number of component
@@ -255,7 +300,7 @@ PLSCV = function(lfolds, prout){
   #}
   #outcp = cbind(outcp, dout)
   nbCPoptimun = outcp[which(outcp[,2] == max(outcp[,2])),1]
-  
+  print("====PLS model on CV====")
   print(paste("Optimal component: ", nbCPoptimun, sep = ""))
   print("Perfomances in CV")
   print(paste("R2=", vcpR2[nbCPoptimun], sep = ""))
@@ -269,11 +314,14 @@ PLSCV = function(lfolds, prout){
 }
 
 # PLS - real #
-PLSTrainTest = function(dtrain, dtest, nbcp){
+PLSTrainTest = function(dtrain, dtest, dcluster, nbcp){
   
   modelpls = plsr(Aff~., data=dtrain, ncomp = nbcp)
   predplstest = predict(modelpls, ncomp = nbcp, newdata = dtest)
   predplstrain = predict(modelpls, ncomp = nbcp, newdata = dtrain)
+  
+  names(predplstrain) = rownames(dtrain)
+  names(predplstest) = rownames(dtest)
   
   r2train = calR2(dtrain[,"Aff"], predplstrain)
   r2test = calR2(dtest[,"Aff"], predplstest)
@@ -285,7 +333,8 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   rmseptest = vrmsep(dtest[,"Aff"], predplstest)
   
   
-  print("****PLS model****")
+  print("===== PLS model train-Test =====")
+  #print(modelpls$coefficients)
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim= ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
   print(paste("- Corval=", cortrain))
@@ -297,6 +346,34 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
   print(paste("- RMSEP=", rmseptest, sep = ""))
   print(paste("- R2=", r2test, sep = ""))
   
+  
+  # train
+  pdf(paste(prout ,"PerfPLSreg_TrainTest.pdf", sep = ""), width = 20, height = 20)
+  plot(dtrain[,"Aff"], predplstrain, pch = 20, main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predplstrain), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtrain[,"Aff"], predplstrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predplstrain), digits = 3)))
+  text(dtrain[,"Aff"], predplstrain, labels = names(predplstrain))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - train
+  dclusterTrain = dcluster[names(predplstrain)]
+  plot(dtrain[,"Aff"], predplstrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predplstrain), digits = 3)))
+  text(dtrain[,"Aff"], predplstrain, labels = dclusterTrain, col = dclusterTrain)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # test
+  plot(dtest[,"Aff"], predplstest, pch = 20, main = paste("Correlation = ", round(cor(dtest[,"Aff"], predplstest), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtest[,"Aff"], predplstest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predplstest), digits = 3)))
+  text(dtest[,"Aff"], predplstest, labels = names(predplstest))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - test
+  dclusterTest = dcluster[names(predplstest)]
+  plot(dtest[,"Aff"], predplstest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predplstest), digits = 3)))
+  text(dtest[,"Aff"], predplstest, labels = dclusterTest, col = dclusterTest)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  dev.off()
   
   return(modelpls)
   
@@ -311,7 +388,7 @@ PLSTrainTest = function(dtrain, dtest, nbcp){
 # case of regression #
 ######################
 
-SVMRegCV = function(lfolds, vgamma, vcost, prout){
+SVMRegCV = function(lfolds, vgamma, vcost, dcluster, prout){
   
   print(paste("==== SVM in CV with ", length(lfolds), " Automatic optimization CV ====", sep = ""))
   
@@ -335,6 +412,7 @@ SVMRegCV = function(lfolds, vgamma, vcost, prout){
     modtune = tune(svm, Aff~., data = dtrain, ranges = list(gamma = vgamma, cost = vcost), tunecontrol = tune.control(sampling = "cross"), kernel = "polynomial")
     
     vpred = predict (modtune$best.model, dtest, type = "response")
+    names(vpred) = rownames(dtest)
     
     y_predict = append(y_predict, vpred)
     y_real = append(y_real, dtest[,"Aff"])
@@ -354,15 +432,91 @@ SVMRegCV = function(lfolds, vgamma, vcost, prout){
   
   pdf(paste(prout, "PerfSVMreg_CV", length(lfolds), ".pdf", sep = ""), 20, 20)
   plot(y_real, y_predict, pch = 20, main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
   text(y_real, y_predict, labels = names(y_predict))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster
+  dcluster = dcluster[names(y_predict)]
+  plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
+  text(y_real, y_predict, labels = dcluster, col = dcluster)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   dev.off()  
   
   tperf = cbind(y_predict, y_real)
   write.table(tperf, paste(prout, "perfSVMRegCV_", length(lfolds), ".txt", sep = ""), sep = "\t")
+  
+  return(modtune$best.model)
 }
+
+
+SVMRegTrainTest = function(dtrain, dtest, vgamma, vcost, dcluster, prout){
+  
+  print(paste("==== SVM in train-test --- Automatic optimization CV ====", sep = ""))
+  
+  modelsvm = tune(svm, Aff~., data = dtrain, ranges = list(gamma = vgamma, cost = vcost), tunecontrol = tune.control(sampling = "cross"), kernel = "polynomial")
+  modelsvm = modelsvm$best.model
+  
+  predsvmtest = predict(modelsvm, newdata = dtest)
+  predsvmtrain = predict(modelsvm, newdata = dtrain)
+  
+  names(predsvmtrain) = rownames(dtrain)
+  names(predsvmtest) = rownames(dtest)
+  
+  r2train = calR2(dtrain[,"Aff"], predsvmtrain)
+  r2test = calR2(dtest[,"Aff"], predsvmtest)
+  
+  cortrain = cor(dtrain[,"Aff"], predsvmtrain)
+  cortest = cor(dtest[,"Aff"], predsvmtest)
+  
+  rmseptrain = vrmsep(dtrain[,"Aff"], predsvmtrain)
+  rmseptest = vrmsep(dtest[,"Aff"], predsvmtest)
+  
+  
+  print("===== SVM model train-Test =====")
+  #print(modelpls$coefficients)
+  print(paste("Perf training (dim= ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
+  print(paste("- Corval=", cortrain))
+  print(paste("- RMSEP=", rmseptrain))
+  print(paste("- R2=", r2train))
+  
+  print(paste("Perf test (dim=", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
+  print(paste("- Corval=", cortest, sep = ""))
+  print(paste("- RMSEP=", rmseptest, sep = ""))
+  print(paste("- R2=", r2test, sep = ""))
+  
+  
+  # train
+  pdf(paste(prout ,"PerfSVMreg_TrainTest.pdf", sep = ""), width = 20, height = 20)
+  plot(dtrain[,"Aff"], predsvmtrain, pch = 20, main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predsvmtrain), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtrain[,"Aff"], predsvmtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predsvmtrain), digits = 3)))
+  text(dtrain[,"Aff"], predsvmtrain, labels = names(predsvmtrain))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - train
+  dclusterTrain = dcluster[names(predsvmtrain)]
+  plot(dtrain[,"Aff"], predsvmtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], predsvmtrain), digits = 3)))
+  text(dtrain[,"Aff"], predsvmtrain, labels = dclusterTrain, col = dclusterTrain)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # test
+  plot(dtest[,"Aff"], predsvmtest, pch = 20, main = paste("Correlation = ", round(cor(dtest[,"Aff"], predsvmtest), digits = 3)), cex = 2)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  plot(dtest[,"Aff"], predsvmtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predsvmtest), digits = 3)))
+  text(dtest[,"Aff"], predsvmtest, labels = names(predsvmtest))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - test
+  dclusterTest = dcluster[names(predsvmtest)]
+  plot(dtest[,"Aff"], predsvmtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], predsvmtest), digits = 3)))
+  text(dtest[,"Aff"], predsvmtest, labels = dclusterTest, col = dclusterTest)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  dev.off()
+  
+  }
+  
 
 #####################
 #  classification   #
@@ -494,7 +648,7 @@ RFGridRegCV = function(lntree, lmtry, lfolds, prout){
   return (list(rownames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[1]],colnames (gridOpt)[which(gridOpt==max(gridOpt), arr.ind=T)[2]] ))
 }
 
-RFregCV = function(lfolds, ntree, mtry, prout){
+RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   
   print(paste("==RF in CV with ", length(lfolds), " folds ntree = ", ntree, " mtry = ", mtry, sep = ""))
   
@@ -520,6 +674,7 @@ RFregCV = function(lfolds, ntree, mtry, prout){
     
     timportance = cbind(timportance, modelRF$importance[,1])
     
+    names(vpred) = rownames(dtest)
     y_predict = append(y_predict, vpred)
     y_real = append(y_real, dtest[,"Aff"])
     k = k + 1
@@ -530,7 +685,7 @@ RFregCV = function(lfolds, ntree, mtry, prout){
   corval = cor(y_real, y_predict)
   RMSEP = vrmsep(y_real, y_predict)
   
-  print("Perfomances in CV")
+  print("== Perfomances in CV ==")
   print(paste("R2=", valr2, sep = ""))
   print(paste("Cor=", corval, sep = ""))
   print(paste("RMSEP=", RMSEP, sep = ""))
@@ -554,25 +709,89 @@ RFregCV = function(lfolds, ntree, mtry, prout){
   }
   
   plot(y_real, y_predict, pch = 20, main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
   text(y_real, y_predict, labels = names(y_predict))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster
+  dcluster = dcluster[names(y_predict)]
+  plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
+  text(y_real, y_predict, labels = dcluster, col = dcluster)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   dev.off()  
   
   write.table(dimportance, paste(prout, "ImportanceDescFRRegCV_", length(lfolds), ".txt", sep = ""), sep = "\t")
   
+  
+  # plot importance descriptors
+  dimportance = read.table(paste(prout, "ImportanceDescFRRegCV_", length(lfolds), ".txt", sep = ""))
+  
+  ORDER = order(dimportance[,1], decreasing = T)
+  NAME = rownames(dimportance)
+  
+  dimportance = cbind(dimportance, NAME)
+  dimportance = cbind (dimportance, ORDER)
+  dimportance = dimportance[ORDER[seq(1,10)],]
+  dimportance = as.data.frame(dimportance)
+  
+  
+  p = ggplot(dimportance, aes(-ORDER, M, fill = 1)) + 
+    geom_bar(stat = "identity", show.legend = FALSE) + 
+    scale_x_continuous(breaks = -dimportance$ORDER, labels = dimportance$NAME)+
+    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    labs(y = "", x = "") + 
+    ylim (c(0, 0.5)) +
+    coord_flip()
+  
+  ggsave(paste(prout, "ImportanceDescRF_CV10.png", sep = ""), width = 6,height = 6, dpi = 300)
+  
+  
   tperf = cbind(y_predict, y_real)
   write.table(tperf, paste(prout, "perfRFRegCV_", length(lfolds), ".txt", sep = ""), sep = "\t")
   
+  # test - plot for publication
+  dpred = cbind(y_real, y_predict)
+  colnames(dpred) = c("Yreal", "Ypredict")
+  dpred = as.data.frame(dpred)
+  
+  p = ggplot(dpred, aes(Yreal, Ypredict))+
+    geom_point(size=1.2, col="black") + 
+    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size=3) + 
+    xlim (c(-2.5, 2.5)) +
+    geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
+    ylim (c(-2.5, 2.5)) 
+  ggsave(paste(prout, "PerfRFregpoint_CV10.png", sep = ""), width = 6,height = 6, dpi = 300)
+  
+  
+  #dpred = cbind(dtest[,"Aff"], vpredtest)
+  Vcluster = dcluster
+  d = cbind(dpred, Vcluster)
+  #colnames(dpred) = c("NAME", "Yreal", "Ypredict", "cluster")
+  #dpred = as.data.frame(dpred)
+  #print(dpred)
+  
+  p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
+    geom_point(size=0.6, col="black") + 
+    geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
+    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size = 2) + 
+    xlim (c(-2.5, 2.5)) +
+    geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
+    ylim (c(-2.5, 2.5)) 
+  print(p)
+  ggsave(paste(prout, "PerfRFregname_CV10.png", sep = ""), width = 8,height = 8, dpi = 300)
 }
 
-RFreg = function (dtrain, dtest, ntree, mtry, prout){
+RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   
   
   modelRF = randomForest( Aff~., data = dtrain, mtry=as.integer(mtry), ntree=as.integer(ntree), type = "response",  importance=TRUE)
   vpredtrain = predict (modelRF, dtrain, type = "response")
   vpredtest = predict (modelRF, dtest, type = "response")
+  
+  names(vpredtrain) = rownames(dtrain)
+  names(vpredtest) = rownames(dtest)
   
   write.csv(vpredtest, paste(prout, "perfRegPred.csv"))
   
@@ -604,18 +823,64 @@ RFreg = function (dtrain, dtest, ntree, mtry, prout){
   
   # train
   plot(dtrain[,"Aff"], vpredtrain, pch = 20, main = paste("Correlation = ", round(cor(dtrain[,"Aff"], vpredtrain), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(dtrain[,"Aff"], vpredtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], vpredtrain), digits = 3)))
   text(dtrain[,"Aff"], vpredtrain, labels = names(vpredtrain))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - train
+  dclusterTrain = dcluster[names(vpredtrain)]
+  text(dtrain[,"Aff"], vpredtrain, labels = dclusterTrain, col = dclusterTrain)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   
   # test
   plot(dtest[,"Aff"], vpredtest, pch = 20, main = paste("Correlation = ", round(cor(dtest[,"Aff"], vpredtest), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(dtest[,"Aff"], vpredtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], vpredtest), digits = 3)))
   text(dtest[,"Aff"], vpredtest, labels = names(vpredtest))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster-test
+  dclusterTest = dcluster[names(vpredtest)]
+  text(dtest[,"Aff"], vpredtest, labels = dclusterTest, col = dclusterTest)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   dev.off() 
+  
+  
+  # test - plot for publication
+  dpred = cbind(dtest[,"Aff"], vpredtest)
+  colnames(dpred) = c("Yreal", "Ypredict")
+  dpred = as.data.frame(dpred)
+  
+  p = ggplot(dpred, aes(Yreal, Ypredict))+
+    geom_point(size=1.2, col="black") + 
+    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size=3) + 
+    xlim (c(-2.5, 2.5)) +
+    geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
+    ylim (c(-2.5, 2.5)) 
+  #print(p)
+  ggsave(paste(prout, "PerfRFregpoint_Test.png", sep = ""), width = 6,height = 6, dpi = 300)
+  
+  
+  #dpred = cbind(dtest[,"Aff"], vpredtest)
+  Vcluster = dclusterTest
+  #dpred = cbind(dpred, as.character(dclusterTest))
+  dpred = cbind(dpred, Vcluster)
+  #colnames(dpred) = c("NAME", "Yreal", "Ypredict", "cluster")
+  #dpred = as.data.frame(dpred)
+  #print(dpred)
+  
+  p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
+    geom_point(size=0.6, col="black") + 
+    geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
+    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size = 2) + 
+    xlim (c(-2.5, 2.5)) +
+    geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
+    ylim (c(-2.5, 2.5)) 
+  #print(p)
+  ggsave(paste(prout, "PerfRFregname_Test.png", sep = ""), width = 8,height = 8, dpi = 300)
   
 }
 
@@ -819,7 +1084,7 @@ RFClass = function (dtrain, dtest, ntree, mtry, prout){
 # case of regression #
 ######################
 
-CARTRegCV = function(lfolds, prout){
+CARTRegCV = function(lfolds, dcluster, prout){
   
   print(paste("== CART in CV with ", length(lfolds), "==", sep = ""))
   
@@ -844,6 +1109,7 @@ CARTRegCV = function(lfolds, prout){
     
     modelCART = rpart( Aff~., data = dtrain, method = "anova")#, control = rpart.control(cp = 0.05))
     vpred = predict(modelCART, dtest[,-dim(dtest)[2]], type = "vector")
+    names(vpred) = rownames(dtest)
     
     #print(vpred)
     # plot tree in pdf
@@ -872,10 +1138,17 @@ CARTRegCV = function(lfolds, prout){
   
   pdf(paste(prout, "PerfCARTReg_CV", length(lfolds), ".pdf", sep = ""), 20, 20)
   plot(y_real, y_predict, pch = 20, main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
   text(y_real, y_predict, labels = names(y_predict))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster
+  dcluster = dcluster[names(y_predict)]
+  plot(y_real, y_predict, type = "n", main = paste("Correlation = ", round(cor(y_real, y_predict), digits = 3)))
+  text(y_real, y_predict, labels = names(y_predict))
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   dev.off()  
   
   dpred = cbind(y_predict, y_real)
@@ -885,7 +1158,7 @@ CARTRegCV = function(lfolds, prout){
 }
 
 
-CARTreg = function (dtrain, dtest, prout){
+CARTreg = function (dtrain, dtest, dcluster, prout){
   
   modelCART = rpart( Aff~., data = dtrain, method = "anova")#, control = rpart.control(cp = 0.05))
     
@@ -898,6 +1171,9 @@ CARTreg = function (dtrain, dtest, prout){
 
   vpredtest = predict(modelCART, dtest[,-dim(dtest)[2]], type = "vector") # remove affinity
   vpredtrain = predict(modelCART, dtrain[,-dim(dtrain)[2]], type = "vector") # remove affinity
+  
+  names(vpredtest) = rownames(dtest)
+  names(vpredtrain) = rownames(dtrain)
   
   write.csv(vpredtest, paste(prout, "perfCARTPred.csv"))
   
@@ -928,17 +1204,31 @@ CARTreg = function (dtrain, dtest, prout){
   
   # train
   plot(dtrain[,"Aff"], vpredtrain, pch = 20, main = paste("Correlation = ", round(cor(dtrain[,"Aff"], vpredtrain), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(dtrain[,"Aff"], vpredtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], vpredtrain), digits = 3)))
   text(dtrain[,"Aff"], vpredtrain, labels = names(vpredtrain))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - train
+  dclustertrain = dcluster[names(vpredtrain)]
+  plot(dtrain[,"Aff"], vpredtrain, type = "n", main = paste("Correlation = ", round(cor(dtrain[,"Aff"], vpredtrain), digits = 3)))
+  text(dtrain[,"Aff"], vpredtrain, labels = dclustertrain, col = dclustertrain)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   
   # test
   plot(dtest[,"Aff"], vpredtest, pch = 20, main = paste("Correlation = ", round(cor(dtest[,"Aff"], vpredtest), digits = 3)), cex = 2)
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
   plot(dtest[,"Aff"], vpredtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], vpredtest), digits = 3)))
   text(dtest[,"Aff"], vpredtest, labels = names(vpredtest))
-  abline(a = 1, b = 1, col = "red", cex = 3)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
+  # cluster - test
+  dclustertest = dcluster[names(vpredtest)]
+  plot(dtest[,"Aff"], vpredtest, type = "n", main = paste("Correlation = ", round(cor(dtest[,"Aff"], vpredtest), digits = 3)))
+  text(dtest[,"Aff"], vpredtest, labels = dclustertest, col = dclustertest)
+  abline(a = 0, b = 1, col = "red", cex = 3)
+  
   dev.off() 
   
 }

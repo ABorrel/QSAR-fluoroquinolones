@@ -28,14 +28,14 @@ optimal_clustering = as.integer(args[11])
 #pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
 #prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
 
-#plotPCA = 1
-#corMatrix = 1
-#histplot = 1
-#circularDendo = 1
+#plotPCA = 0
+#corMatrix = 0
+#histplot = 0
+#circularDendo = 0
 #valcor = 0.80
 #maxQuantile = 85
 #logaff = 1
-#optimal_clustering = 1
+#optimal_clustering = 0
 
 
 # Process descriptors matrix #
@@ -135,10 +135,22 @@ if (optimal_clustering ==1 ){
         lclust = unique(dclust[,2])
         for(clust in lclust){
           daffclust = daffinity[dclust[which(dclust[,2] == clust),1],]
-          M = mean(daffclust[,2])
-          SD = sd(daffclust[,2])
-          dMCluster = rbind(dMCluster, c(clust, M, SD))
+          
+          M1 = mean(daffclust[,1])
+          SD1 = sd(daffclust[,1])
+          M2 = mean(daffclust[,2])
+          SD2 = sd(daffclust[,2])
+          M3 = mean(daffclust[,3])
+          SD3 = sd(daffclust[,3])
+          M4 = mean(daffclust[,4])
+          SD4 = sd(daffclust[,4])
+
+
+
+          dMCluster = rbind(dMCluster, c(clust, M1, SD1, M2, SD2, M3, SD3, M4, SD4))
         }
+        lbact = colnames(daffinity)
+        colnames(dMCluster) = c("cluster", paste("M_", lbact[1], sep = ""),  paste("SD_", lbact[1], sep = ""),  paste("M_", lbact[2], sep = ""),  paste("SD_", lbact[2], sep = ""), paste("M_", lbact[3], sep = ""),  paste("SD_", lbact[3], sep = ""),  paste("M_", lbact[4], sep = ""),  paste("SD_", lbact[4], sep = ""))
         write.csv(dMCluster, paste(prout, "Mclusters_", metclustering, metoptimal, metagregation, ".csv", sep = ""))
       }
     }

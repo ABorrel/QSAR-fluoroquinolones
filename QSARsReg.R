@@ -32,12 +32,12 @@ nbCV = as.integer(args[5])
 
 # model regression #
 ####################
-modelPCRreg = 1
-modelPLSreg = 1
-modelSVMreg = 1
+modelPCRreg = 0
+modelPLSreg = 0
+modelSVMreg = 0
 modelRFreg = 1
-modelCartreg = 1
-chemmodlabreg = 1
+modelCartreg = 0
+chemmodlabreg = 0
 
 
 #########################
@@ -69,13 +69,19 @@ print("")
 
 # training set
 dtrain = read.csv(ptrain, header = TRUE)
-rownames(dtrain) == dtrain[,1]
+rownames(dtrain) = dtrain[,1]
 dtrain = dtrain[,-1]
 
 # test set
 dtest = read.csv(ptest, header = TRUE)
-rownames(dtest) == dtest[,1]
+rownames(dtest) = dtest[,1]
 dtest = dtest[,-1]
+
+# cluster
+dcluster = read.csv(pcluster, header = TRUE)
+namescpd = dcluster[,1]
+dcluster = dcluster[,-1]
+names(dcluster) = namescpd
 
 print("==== Dataset ====")
 print(paste("Data train: dim = ", dim(dtrain)[1], dim(dtrain)[2], sep = " "))
@@ -99,17 +105,16 @@ print("**************************")
 
 if (modelPCRreg == 1){
   nbCp = PCRgridCV(lgroupCV, prout)
-  print(nbCp)
-  PCRCV(lgroupCV, nbCp, prout)
-  PCRTrainTest(dtrain, dtest, nbCp)
+  PCRCV(lgroupCV, nbCp, dcluster, prout)
+  PCRTrainTest(dtrain, dtest, dcluster, nbCp)
 }
 
 ### PLS  ####
 #############
 
 if (modelPLSreg == 1){
-  nbcp = PLSCV(lgroupCV, prout)
-  PLSTrainTest(dtrain, dtest, nbcp)
+  nbcp = PLSCV(lgroupCV, dcluster, prout)
+  PLSTrainTest(dtrain, dtest, dcluster, nbcp)
 }
 
 ### SVM ###
@@ -118,8 +123,8 @@ if (modelPLSreg == 1){
 if(modelSVMreg == 1){
   vgamma = 2^(-1:1)
   vcost = 2^(2:8)
-  SVMRegCV(lgroupCV, vgamma, vcost, prout)
-  
+  modelSVM = SVMRegCV(lgroupCV, vgamma, vcost, dcluster, prout)
+  SVMRegTrainTest(dtrain, dtest, vgamma, vcost, dcluster, prout)
 }
 
 ######
@@ -130,26 +135,14 @@ if (modelRFreg == 1){
   vntree = c(10,50,100,200,500, 1000)
   vmtry = c(1,2,3,4,5,10,15,20, 25, 30)
   
-  parameters = RFGridRegCV(vntree, vmtry, lgroupCV, prout)
-  RFregCV(lgroupCV, parameters[[1]], parameters[[2]], prout)
+  #RFregCV(lgroupCV, 50, 5, dcluster, prout) for test
   
-  RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], prout)
   
-  #### case of external set #
-  ###########################
-  #print ("======External SET======")
-  #dtest = read.table(ptest, sep = "\t", header = TRUE)
-  #Aff = rep(0, dim(dtest)[1])
-  #rownames(dtest) = dtest[,1]
-  #dtest = dtest[,-1]
-  #dtest = dtest[,-1]
-  #dtest = cbind(dtest, Aff)
-  #  
-  #lfoldtrain = samplingDataNgroup(dglobalAff, nbCV)
-  #parameters = RFGridRegCV(vntree, vmtry, lfoldtrain, paste(prout, "trainReg", sep = ""))
-  #RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], prout)
-  
-}
+  parameters = RFGridRegCV(vntree, vmtry, lgroupCV,  prout)
+  RFregCV(lgroupCV, parameters[[1]], parameters[[2]], dcluster, prout)
+  RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], dcluster, prout)
+
+  }
 
 
 
@@ -158,8 +151,8 @@ if (modelRFreg == 1){
 ############
 
 if(modelCartreg == 1){
-  CARTRegCV(lgroupCV, prout)
-  CARTreg(dtrain, dtest, prout)
+  CARTRegCV(lgroupCV, dcluster, prout)
+  CARTreg(dtrain, dtest, dcluster, prout)
 }
 
 
@@ -168,7 +161,7 @@ if(modelCartreg == 1){
 #############
 
 if(chemmodlabreg == 1){
-  dchem = cbind(dglobalAff[,dim(dglobalAff)[2]],dglobalAff[,-dim(dglobalAff)[2]] )
+  dchem = cbind(dtrain[,dim(dtrain)[2]],dtrain[,-dim(dtrain)[2]] )
   colnames(dchem)[1] = "Aff"
   
   pdf(paste(prout, "Reg_chemmolab.pdf", sep = ""))

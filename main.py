@@ -123,7 +123,7 @@ pranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "desc_analysis/" + s
 
 # desc and visualisation #
 ##########################
-#runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=1, hist=1, dendo=1, cluster=1)# used to find the different stable cluster
+#runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=1, hist=1, dendo=1, cluster=1) #used to find the different stable cluster
 
 
 # analysis by cluster and cross #
@@ -132,7 +132,7 @@ pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclus
 
 # cross analysis
 prclusteranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CrossClusterAnalysis/" + str(pcluster.split("/")[-1][6:-4]) + "/")
-runExternalSoft.clusterAnalysis(pdesc, paffinity_currated, pcluster, prclusteranalysis, corcoef, maxQuantile)
+#runExternalSoft.clusterAnalysis(pdesc, paffinity_currated, pcluster, prclusteranalysis, corcoef, maxQuantile)
 
 # extract compound by cluster #
 ###############################

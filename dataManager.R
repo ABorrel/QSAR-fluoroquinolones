@@ -152,8 +152,6 @@ controlDatasets = function(ldataset, prin){
   nbsplit = length(ldataset)
   
   pdf(paste(prin,".pdf", sep = ""), width = 10, height = 10)
-  
-  
   colorrainbow = rainbow(nbsplit)
   i = 1
   colorpoint = NULL

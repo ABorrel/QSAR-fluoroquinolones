@@ -23,11 +23,9 @@ logaff = as.integer(args[7])
 #pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
 #prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
 
-#circularDendo = 1
 #valcor = 0.80
 #maxQuantile = 85
 #logaff = 1
-#optimal_clustering = 1
 
 
 ##############################
@@ -87,8 +85,8 @@ dendogramCluster(dglobal, daffinity, dcluster, prout)
 ##########################
 
 lcluster = unique(dcluster[,2])
-
+daffinity = daffinity[,c("Escherichia.coli", "Pseudomonas.aeruginosa",  "Staphylococcus.aureus" , "Streptococcus.pneumoniae")]
 for(cluster in lcluster){
   dtemp = daffinity[which(dcluster[,2] == cluster),]
-  radialByCluster(dtemp, paste(prout, cluster, ".svg"))
+  radialByCluster(dtemp, paste(prout, cluster, ".svg", sep = ""))
 }
