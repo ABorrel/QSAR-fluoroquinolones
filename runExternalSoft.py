@@ -124,7 +124,7 @@ def babelConvertSMItoSDF(pfilesmi):
 
 def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
 
-    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perfRF.txt"
+    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perfPCR.txt"
     print cmd_QSAR
     system(cmd_QSAR)
 

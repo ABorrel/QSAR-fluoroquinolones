@@ -24,18 +24,18 @@ circularDendo = as.integer(args[10])
 optimal_clustering = as.integer(args[11])
 
 
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-#pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
+pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
+pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
+prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
 
-#plotPCA = 0
-#corMatrix = 0
-#histplot = 0
-#circularDendo = 0
-#valcor = 0.80
-#maxQuantile = 85
-#logaff = 1
-#optimal_clustering = 0
+plotPCA = 0
+corMatrix = 1
+histplot = 0
+circularDendo = 0
+valcor = 0.80
+maxQuantile = 85
+logaff = 1
+optimal_clustering = 0
 
 
 # Process descriptors matrix #
@@ -102,7 +102,29 @@ write.csv(dglobal, paste(prout, "globalTable.csv", sep = ""))
 
 if (corMatrix == 1){
   cardMatrixCor(cor(dglobal), paste(prout, "matrixCor_", valcor, sep = ""), 6)
+  
+  # matrix cor with pMIC
+  dcor = NULL
+  lbact = colnames(daffinity)
+  ldesc = colnames(dglobal)
+  for(bact in lbact){
+    lcor = NULL
+    for(desc in ldesc){
+      print(bact)
+      print (desc)
+      
+      corval = cor(daffinity[,bact], dglobal[,desc])
+      lcor = append(lcor, corval)
+    }
+    dcor = cbind(dcor, lcor)
+  }
+  print (dcor)
+  rownames(dcor) = ldesc
+  colnames(dcor) = lbact
+  
+  write.csv(dcor, file = paste(prout, "corMIC-Desc.csv"))
 }
+
 
 if(plotPCA == 1){
   PCAplot(dglobal, daffinity, prout)

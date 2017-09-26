@@ -279,7 +279,56 @@ MAE = function(dreal, dpredict){
     i = i + 1
   }
   return(valout/imax)
-  
-  
 }
 
+R02 = function(dreal, dpredict){
+  
+  dreal = as.vector(dreal)
+  dpredict = as.vector(dpredict)
+  
+  #print("Nb val in perf:")
+  #print(length(dreal))
+  
+  dperf = cbind(dreal, dpredict)
+  dperf = na.omit(dperf)
+  
+  #print("Nb val predict:")
+  #print(dim(dperf))
+  
+  Mreal = mean(dperf[,1])
+  Mpredict = mean(dperf[,2])
+  
+  print(paste("Mpred - ",Mpredict))
+  
+  A = 0
+  B = 0
+  k = 0
+  yypred = 0
+  Sumpredict = 0
+  # first loop for k
+  for (i in seq(1, dim(dperf)[1])){
+    #print (i)
+    yypred = yypred + (dperf[i,1]*dperf[i,2])
+    Sumpredict = Sumpredict + (dperf[i,2]^2)
+  }
+  #print(yypred)
+  #print(Sumpredict)
+  k = yypred/Sumpredict
+  #print(paste("k - ", k))
+  
+  for (i in seq(1, dim(dperf)[1])){
+    #print (i)
+    tempA = ((dperf[i,2]-(k*dperf[i,2]))^2)
+    tempB = ((dperf[i,2]-Mpredict)^2)
+    #print(paste(tempA, tempB))
+    
+    A = A + ((dperf[i,2]-(k*dperf[i,2]))^2)
+    B = B + ((dperf[i,2]-Mpredict)^2)
+  }
+  #print(k)
+  #print(paste("A -", A))
+  #print(paste("B -",B))
+  
+  r02 = as.double(A/B)
+  return (1 - r02)
+}

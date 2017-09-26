@@ -123,7 +123,9 @@ PCRCV = function(lfolds, nbcomp, dcluster, prout){
   corpred = cor(vreal, vpred)
   rmsepcp = vrmsep(vreal, vpred)
   R2cp = calR2(vreal, vpred)
-
+  MAEcp = MAE(vreal, vpred)
+  R02cp = R02(vreal, vpred)
+  
   #print (paste(prout, "PerfPCRreg_CV", length(lfolds), ".png", sep = ""))
   
   pdf(paste(prout, "PerfPCRreg_CV", length(lfolds), ".pdf", sep = ""), 20, 20)
@@ -147,6 +149,8 @@ PCRCV = function(lfolds, nbcomp, dcluster, prout){
   
   print("Perfomances in CV")
   print(paste("R2=", R2cp, sep = ""))
+  print(paste("R02=", R02cp, sep = ""))
+  print(paste("MAE=", MAEcp, sep = ""))
   print(paste("Cor=", corpred, sep = ""))
   print(paste("RMSEP=", rmsepcp, sep = ""))
   print("")
@@ -172,22 +176,31 @@ PCRTrainTest = function(dtrain, dtest, dcluster, nbcp){
   R2train = calR2(dtrain[,"Aff"], predpcrtrain)
   R2test = calR2(dtest[,"Aff"], predpcrtest)
   
-  pdf(paste(prout, "PerfPCRreg_TrainTest.pdf", sep = ""), 20, 20)
+  R02train = R02(dtrain[,"Aff"], predpcrtrain)
+  R02test = R02(dtest[,"Aff"], predpcrtest)
   
+  MAEtrain = MAE(dtrain[,"Aff"], predpcrtrain)
+  MAEtest = MAE(dtest[,"Aff"], predpcrtest)
+  
+  pdf(paste(prout, "PerfPCRreg_TrainTest.pdf", sep = ""), 20, 20)
 
   
   # print performances
   print("====PCR model on external test====")
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim = ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
+  print(paste("R2=", R2train))
+  print(paste("R02=", R02train))
+  print(paste("MAE=", MAEtrain))
   print(paste("Corval=", cortrain))
   print(paste("RMSEP=", rmseptrain))
-  print(paste("R2=", R2train))
   print("****")
   print(paste("Perf test (dim = ", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
+  print(paste("R2=", R2test))
+  print(paste("R02=", R02test))
+  print(paste("MAE=", MAEtest))
   print(paste("Corval=", cortest))
   print(paste("RMSEP=", rmseptest))
-  print(paste("R2=", R2test))
   print("")
   print("")
   
@@ -240,6 +253,8 @@ PLSCV = function(lfolds, dcluster, prout){
   vcpRMSEP = NULL
   vcpR2 = NULL
   vcpcor = NULL
+  vcpR02 = NULL
+  vcpMAE = NULL
   for (cp in seq(1,maxCp)){
     i = 1
     imax = length(lfolds)
@@ -267,10 +282,14 @@ PLSCV = function(lfolds, dcluster, prout){
     corpred = cor(vreal, vpred)
     rmsepcp = vrmsep(vreal, vpred)
     valR2 = calR2(vreal, vpred)
+    R02pred = R02(vreal, vpred)
+    MAEpred = MAE(vreal, vpred)
     
     vcpR2 = append(vcpR2, valR2)
     vcpRMSEP = append(vcpRMSEP,rmsepcp)
     vcpcor = append(vcpcor, corpred)
+    vcpR02 = append(vcpR02, R02pred)
+    vcpMAE = append(vcpMAE, MAEpred)
     
   }
   
@@ -304,11 +323,13 @@ PLSCV = function(lfolds, dcluster, prout){
   print(paste("Optimal component: ", nbCPoptimun, sep = ""))
   print("Perfomances in CV")
   print(paste("R2=", vcpR2[nbCPoptimun], sep = ""))
+  print(paste("R02=", vcpR02[nbCPoptimun], sep = ""))
+  print(paste("MAE=", vcpMAE[nbCPoptimun], sep = ""))
   print(paste("Cor=", vcpcor[nbCPoptimun], sep = ""))
   print(paste("RMSEP=", vcpRMSEP[nbCPoptimun], sep = ""))
+  print("")
+  print("")
   
-  print("")
-  print("")
   return (nbCPoptimun)
   
 }
@@ -332,19 +353,30 @@ PLSTrainTest = function(dtrain, dtest, dcluster, nbcp){
   rmseptrain = vrmsep(dtrain[,"Aff"], predplstrain)
   rmseptest = vrmsep(dtest[,"Aff"], predplstest)
   
+  R02train = R02(dtrain[,"Aff"], predplstrain)
+  R02test = R02(dtest[,"Aff"], predplstest)
+  
+  MAEtrain = MAE(dtrain[,"Aff"], predplstrain)
+  MAEtest = MAE(dtest[,"Aff"], predplstest)
   
   print("===== PLS model train-Test =====")
   #print(modelpls$coefficients)
   print(paste("NB components = ", nbcp, sep = ""))
   print(paste("Perf training (dim= ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
-  print(paste("- Corval=", cortrain))
-  print(paste("- RMSEP=", rmseptrain))
-  print(paste("- R2=", r2train))
-  
+  print(paste("R2 train=", r2train))
+  print(paste("R02 train=", R02train))
+  print(paste("MAE train=", MAEtrain))
+  print(paste("Cor train=", cortrain))
+  print(paste("RMSEP train=", rmseptrain))
+  print("")  
   print(paste("Perf test (dim=", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- Corval=", cortest, sep = ""))
-  print(paste("- RMSEP=", rmseptest, sep = ""))
-  print(paste("- R2=", r2test, sep = ""))
+  print(paste("R2 test=", r2test))
+  print(paste("R02 test=", R02test))
+  print(paste("MAE test=", MAEtest))
+  print(paste("Cor test=", cortest))
+  print(paste("RMSEP test=", rmseptest))
+  print("")
+  print("")
   
   
   # train
@@ -423,11 +455,17 @@ SVMRegCV = function(lfolds, vgamma, vcost, dcluster, prout){
   valr2 = calR2(y_real, y_predict)
   corval = cor(y_real, y_predict)
   RMSEP = vrmsep(y_real, y_predict)
+  MAEval = MAE(y_real, y_predict)
+  R02val = R02(y_real, y_predict)
   
   print("Perfomances in CV")
   print(paste("R2=", valr2, sep = ""))
+  print(paste("R02=", R02val, sep = ""))
+  print(paste("MAE=", MAEval, sep = ""))
   print(paste("Cor=", corval, sep = ""))
   print(paste("RMSEP=", RMSEP, sep = ""))
+  print("")
+  print("")
   
   
   pdf(paste(prout, "PerfSVMreg_CV", length(lfolds), ".pdf", sep = ""), 20, 20)
@@ -473,18 +511,32 @@ SVMRegTrainTest = function(dtrain, dtest, vgamma, vcost, dcluster, prout){
   rmseptrain = vrmsep(dtrain[,"Aff"], predsvmtrain)
   rmseptest = vrmsep(dtest[,"Aff"], predsvmtest)
   
+  R02train = R02(dtrain[,"Aff"], predsvmtrain)
+  R02test = R02(dtest[,"Aff"], predsvmtest)
+  
+  MAEtrain = MAE(dtrain[,"Aff"], predsvmtrain)
+  MAEtest = MAE(dtest[,"Aff"], predsvmtest)
   
   print("===== SVM model train-Test =====")
   #print(modelpls$coefficients)
   print(paste("Perf training (dim= ", dim(dtrain)[1], "*", dim(dtrain)[2], "):", sep = ""))
-  print(paste("- Corval=", cortrain))
-  print(paste("- RMSEP=", rmseptrain))
-  print(paste("- R2=", r2train))
+  print(paste("R2 train=", r2train))
+  print(paste("R02 train=", R02train))
+  print(paste("MAE train=", MAEtrain))
+  print(paste("Corval train=", cortrain))
+  print(paste("RMSEP=", rmseptrain))
+  print("")
+  print("")
+  
   
   print(paste("Perf test (dim=", dim(dtest)[1], "*", dim(dtest)[2], "):", sep = ""))
-  print(paste("- Corval=", cortest, sep = ""))
-  print(paste("- RMSEP=", rmseptest, sep = ""))
-  print(paste("- R2=", r2test, sep = ""))
+  print(paste("R2 test=", r2test))
+  print(paste("R02 test=", R02test))
+  print(paste("MAE test=", MAEtest))
+  print(paste("Corval test=", cortest, sep = ""))
+  print(paste("RMSEP test=", rmseptest, sep = ""))
+  print("")
+  print("")
   
   
   # train
@@ -684,11 +736,18 @@ RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   valr2 = calR2(y_real, y_predict)
   corval = cor(y_real, y_predict)
   RMSEP = vrmsep(y_real, y_predict)
+  MAEval = MAE(y_real, y_predict)
+  R02val = R02(y_real, y_predict)
   
   print("== Perfomances in CV ==")
   print(paste("R2=", valr2, sep = ""))
+  print(paste("R02=", R02val, sep = ""))
+  print(paste("MAE=", MAEval, sep = ""))
   print(paste("Cor=", corval, sep = ""))
   print(paste("RMSEP=", RMSEP, sep = ""))
+  print("")
+  print("")
+  
   
   # importance descriptors
   Mimportance = apply(timportance, 1, mean)
@@ -757,8 +816,10 @@ RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   dpred = as.data.frame(dpred)
   
   p = ggplot(dpred, aes(Yreal, Ypredict))+
-    geom_point(size=1.2, col="black") + 
-    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size=3) + 
+    geom_point(size=1.5, colour="black", shape=21) + 
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""))+
+    labs(x = "pMIC", y = "Predicted pMIC") +
+    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
@@ -773,9 +834,12 @@ RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   #print(dpred)
   
   p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
-    geom_point(size=0.6, col="black") + 
+    geom_point(size=1.5, colour="black", shape=21) + 
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""))+
+    labs(x = "pMIC", y = "Predicted pMIC") +
     geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
-    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size = 2) + 
+    labs(x = "Real pMIC", y = "Predict pMIC") + 
+    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
@@ -798,25 +862,37 @@ RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   r2train = calR2(dtrain[,"Aff"], vpredtrain)
   cortrain = cor(dtrain[,"Aff"], vpredtrain)
   RMSEPtrain = vrmsep(dtrain[,"Aff"], vpredtrain)
+  R02train = R02(dtrain[,"Aff"], vpredtrain)
+  MAEtrain = MAE(dtrain[,"Aff"], vpredtrain)
   
   r2test = calR2(dtest[,"Aff"], vpredtest)
   cortest = cor(dtest[,"Aff"], vpredtest)
   RMSEPtest = vrmsep(dtest[,"Aff"], vpredtest)
+  R02test = R02(dtest[,"Aff"], vpredtest)
+  MAEtest = MAE(dtest[,"Aff"], vpredtest)
+  
   
   print("===Perf RF===")
   print(paste("Dim train: ", dim(dtrain)[1]," ", dim(dtrain)[2], sep = ""))
   print(paste("Dim test: ", dim(dtest)[1]," ", dim(dtest)[2], sep = ""))
   
   print("==Train==")
-  print(paste("R2=", r2train, sep = ""))
-  print(paste("cor=", cortrain, sep = ""))
-  print(paste("RMSEP=", RMSEPtrain, sep = ""))
+  print(paste("R2 train=", r2train, sep = ""))
+  print(paste("R02 train=", R02train, sep = ""))
+  print(paste("MAE train=", MAEtrain, sep = ""))
+  print(paste("cor train=", cortrain, sep = ""))
+  print(paste("RMSEP train=", RMSEPtrain, sep = ""))
   
   
   print("==Test==")
-  print(paste("R2=", r2test, sep = ""))
-  print(paste("cor=", cortest, sep = ""))
-  print(paste("RMSEP=", RMSEPtest, sep = ""))
+  print(paste("R2 test=", r2test, sep = ""))
+  print(paste("R02 test=", R02test, sep = ""))
+  print(paste("MAE test=", MAEtest, sep = ""))
+  print(paste("cor test=", cortest, sep = ""))
+  print(paste("RMSEP test=", RMSEPtest, sep = ""))
+  print("")
+  print("")
+  
   
   pdf(paste(prout, "PerfRFreg_TrainTest.pdf", sep = ""), 20, 20)
   plot(modelRF)
@@ -855,9 +931,11 @@ RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   dpred = as.data.frame(dpred)
   
   p = ggplot(dpred, aes(Yreal, Ypredict))+
-    geom_point(size=1.2, col="black") + 
-    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size=3) + 
+    geom_point(size=1.5, colour="black", shape=21) + 
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""))+
+    labs(x = "pMIC", y = "Predicted pMIC") +
     xlim (c(-2.5, 2.5)) +
+    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
   #print(p)
@@ -873,9 +951,12 @@ RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   #print(dpred)
   
   p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
-    geom_point(size=0.6, col="black") + 
+    geom_point(size=1.5, colour="black", shape=21) + 
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""))+
+    labs(x = "pMIC", y = "Predicted pMIC") +
     geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
-    labs(x = "Real -log10(MIC)", y = "Predict -log10(MIC)", size = 2) + 
+    labs(x = "Real pMIC", y = "Predict pMIC") + 
+    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
@@ -1129,9 +1210,13 @@ CARTRegCV = function(lfolds, dcluster, prout){
   valr2 = calR2(y_real, y_predict)
   corval = cor(y_real, y_predict)
   RMSEP = vrmsep(y_real, y_predict)
+  R02val = R02(y_real, y_predict)
+  MAEval = MAE(y_real, y_predict)
   
-  print("Perfomances in CV")
+  print("=== Perfomances in CV ===")
   print(paste("R2=", valr2, sep = ""))
+  print(paste("R02=", R02val, sep = ""))
+  print(paste("MAE=", MAEval, sep = ""))
   print(paste("Cor=", corval, sep = ""))
   print(paste("RMSEP=", RMSEP, sep = ""))
   
@@ -1180,25 +1265,33 @@ CARTreg = function (dtrain, dtest, dcluster, prout){
   r2train = calR2(dtrain[,"Aff"], vpredtrain)
   cortrain = cor(dtrain[,"Aff"], vpredtrain)
   RMSEPtrain = vrmsep(dtrain[,"Aff"], vpredtrain)
+  R02train = R02(dtrain[,"Aff"], vpredtrain)
+  MAEtrain = MAE(dtrain[,"Aff"], vpredtrain)
   
   r2test = calR2(dtest[,"Aff"], vpredtest)
   cortest = cor(dtest[,"Aff"], vpredtest)
   RMSEPtest = vrmsep(dtest[,"Aff"], vpredtest)
+  R02test = R02(dtest[,"Aff"], vpredtest)
+  MAEtest = MAE(dtest[,"Aff"], vpredtest)
   
   print("===Perf CART===")
   print(paste("Dim train: ", dim(dtrain)[1]," ", dim(dtrain)[2], sep = ""))
   print(paste("Dim test: ", dim(dtest)[1]," ", dim(dtest)[2], sep = ""))
   
   print("==Train==")
-  print(paste("R2=", r2train, sep = ""))
-  print(paste("cor=", cortrain, sep = ""))
-  print(paste("RMSEP=", RMSEPtrain, sep = ""))
+  print(paste("R2 train=", r2train, sep = ""))
+  print(paste("R02 train=", R02train, sep = ""))
+  print(paste("MAE train=", MAEtrain, sep = ""))
+  print(paste("cor train=", cortrain, sep = ""))
+  print(paste("RMSEP train=", RMSEPtrain, sep = ""))
   
   
   print("==Test==")
-  print(paste("R2=", r2test, sep = ""))
-  print(paste("cor=", cortest, sep = ""))
-  print(paste("RMSEP=", RMSEPtest, sep = ""))
+  print(paste("R2 test=", r2test, sep = ""))
+  print(paste("R02 test=", R02test, sep = ""))  
+  print(paste("MAE test=", MAEtest, sep = ""))
+  print(paste("cor test=", cortest, sep = ""))
+  print(paste("RMSEP test=", RMSEPtest, sep = ""))
   
   pdf(paste(prout, "PerfCARTreg_TrainTest.pdf", sep = ""), 20, 20)
   

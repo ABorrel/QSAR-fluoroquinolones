@@ -110,8 +110,7 @@ maxQuantile = 85
 # Cross MIC analysis  #
 #######################
 prcorAnalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CorrMICAnalysis/")
-#runExternalSoft.corAnalysis(paffinity_currated, prcorAnalysis)
-
+runExternalSoft.corAnalysis(paffinity_currated, prcorAnalysis)
 
 
 #######################
@@ -123,9 +122,9 @@ pranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "desc_analysis/" + s
 
 # desc and visualisation #
 ##########################
-#runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=1, hist=1, dendo=1, cluster=1) #used to find the different stable cluster
+runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=paffinity_currated, prout=pranalysis, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=0, corMatrix=0, hist=1, dendo=0, cluster=0) #used to find the different stable cluster
 
-
+fff
 # analysis by cluster and cross #
 #################################
 pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
@@ -139,11 +138,10 @@ prclusteranalysis = pathFolder.createFolder(pathFolder.PR_RESULT + "CrossCluster
 bycluster.extractByCluster(pcluster, prclusteranalysis, pdesc)
 
 #################
-#  QSAR models  #
+#  QSAR models  #cetone
 #################
 valSplit = 0.15
 prQSAR = pathFolder.createFolder(pathFolder.PR_RESULT + "QSARS/")
-
 
 # split dataset based on descriptors
 dfileTrainTest = runExternalSoft.prepareDataset(pdesc, paffinity_currated, prQSAR, corcoef=corcoef, maxQuantile=maxQuantile, valSplit=valSplit)
