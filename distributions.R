@@ -12,7 +12,7 @@ multipleHist = function(d, prout){
     labs(x = "pMIC", y = "Frequencies") + 
   xlim (c(-2.5, 2.5))+
     ylim(c(0, 0.65))+
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#FF6666")
   ggsave(paste(prout, "Pseudomonas-aeruginosa.png", sep = ""), dpi = 300, width = 8, height = 7)
   
@@ -23,7 +23,7 @@ multipleHist = function(d, prout){
     labs(x = "pMIC", y = "Frequencies") + 
   xlim (c(-2.5, 2.5))+
     ylim(c(0, 0.65))+
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#A5FFB3")
   ggsave(paste(prout, "Staphyococcus-aureus.png", sep = ""), dpi = 300, width = 8, height = 7)
   
@@ -34,7 +34,7 @@ multipleHist = function(d, prout){
     labs(x = "pMIC", y = "Frequencies") + 
   xlim (c(-2.5, 2.5))+
     ylim(c(0, 0.65))+
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#FAFFA5")
   ggsave(paste(prout, "Streptococcus-pneumoniae.png", sep = ""), dpi = 300, width = 8, height = 7)
   
@@ -45,7 +45,7 @@ multipleHist = function(d, prout){
     labs(x = "pMIC", y = "Frequencies") + 
   xlim (c(-2.5, 2.5))+
     ylim(c(0, 0.65))+
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#BAA5FF")
   ggsave(paste(prout, "Escherichia-coli.png", sep = ""), dpi = 300, width = 8, height = 7)
 }

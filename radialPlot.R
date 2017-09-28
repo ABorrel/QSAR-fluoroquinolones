@@ -1,7 +1,7 @@
 
 radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NULL, 
                         radlab = TRUE, start = 0, clockwise = FALSE, rp.type = "r", 
-                        label.prop = 1.4, main = "", xlab = "", ylab = "", line.col = par("fg"), 
+                        label.prop = 1.51, main = "", xlab = "", ylab = "", line.col = par("fg"), 
                         lty = par("lty"), lwd = 4, mar = c(10, 10, 10, 10), 
                         show.grid = TRUE, show.grid.labels = 3, show.radial.grid = TRUE, 
                         grid.col = "#333333", grid.bg = "transparent", grid.left = FALSE, 
@@ -11,7 +11,7 @@ radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NUL
 {
   
   #modif environement
-  par(cex.axis = 3)
+  par(cex.axis = 5)
   par(cex.lab = 2)	
   #print (par())
   
@@ -174,7 +174,7 @@ radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NUL
              3 * pi/2)
         
         text(xpos[label], ypos[label], labels[label], 
-             cex = par("cex.axis"), srt = labelsrt)
+             cex = 5.1, srt = labelsrt, font = 2)
       }
     }
     else{
@@ -191,8 +191,8 @@ radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NUL
       xpos[as.integer(length (xpos)/1.3) -1 ]=xpos[as.integer(length (xpos)/1.3) ]- 0.2
       
       
-      boxed.labels(xpos, ypos, labels, ypad = 0.7, border = FALSE, 
-                   cex = par("cex.axis"))
+      boxed.labels(xpos, ypos, labels, ypad = 2, border = FALSE, 
+                   cex = 1)
     }
     if (show.grid.labels) {
       if (show.grid.labels%%2) {
@@ -229,7 +229,7 @@ radialByCluster = function(daffCluster, pfilout){
   daffCluster = as.matrix(daffCluster)
   
   svg(pfilout, 25, 25)
-  radial.plot(daffCluster[,1], labels = rownames(daffCluster), rp.type="p", radial.lim=c(-2.5, 2.5), cex.lab = 0.5, mar=c(25,25,25,25), line.col = "blue", lwd = 10)
+  radial.plot(daffCluster[,1], labels = rownames(daffCluster), rp.type="p", radial.lim=c(-2.5, 2.5), cex.lab = 1, mar=c(25,25,25,25), line.col = "blue", lwd = 10)
   par(new=TRUE)
   radial.plot(daffCluster[,2], labels = "", rp.type="p", radial.lim=c(-2.5, 2.5), mar=c(25,25,25,25), line.col = "red", lwd = 10)
   par(new=TRUE)

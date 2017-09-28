@@ -21,10 +21,10 @@ prout = args[4]
 nbCV = as.integer(args[5])
 
 # to test
-#ptrain = "/home/aborrel/fluoroquinolones/results/QSARS/train_Escherichia.coli.csv"
-#ptest = "/home/aborrel/fluoroquinolones/results/QSARS/test_Escherichia.coli.csv"
+#ptrain = "/home/aborrel/fluoroquinolones/results/QSARS/train_Pseudomonas.aeruginosa.csv"
+#ptest = "/home/aborrel/fluoroquinolones/results/QSARS/test_Pseudomonas.aeruginosa.csv"
 #pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/QSARS/Escherichia.coli/"
+#prout = "/home/aborrel/fluoroquinolones/results/QSARS/Pseudomonas.aeruginosa/"
 
 # cross validation 10
 #nbCV = 10
@@ -32,10 +32,10 @@ nbCV = as.integer(args[5])
 
 # model regression #
 ####################
-modelPCRreg = 1
+modelPCRreg = 0
 modelPLSreg = 0
 modelSVMreg = 0
-modelRFreg = 0
+modelRFreg = 1
 modelCartreg = 0
 chemmodlabreg = 0
 
@@ -135,10 +135,10 @@ if (modelRFreg == 1){
   vntree = c(10,50,100,200,500, 1000)
   vmtry = c(1,2,3,4,5,10,15,20, 25, 30)
   
-  RFregCV(lgroupCV, 50, 5, dcluster, prout)# for test
-  #parameters = RFGridRegCV(vntree, vmtry, lgroupCV,  prout)
-  #RFregCV(lgroupCV, parameters[[1]], parameters[[2]], dcluster, prout)
-  #RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], dcluster, prout)
+  #RFregCV(lgroupCV, 50, 5, dcluster, prout)# for test
+  parameters = RFGridRegCV(vntree, vmtry, lgroupCV,  prout)
+  RFregCV(lgroupCV, parameters[[1]], parameters[[2]], dcluster, prout)
+  RFreg(dtrain, dtest, parameters[[1]], parameters[[2]], dcluster, prout)
 }
 
 

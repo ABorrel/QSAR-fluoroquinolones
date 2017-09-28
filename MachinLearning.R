@@ -817,9 +817,9 @@ RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   
   p = ggplot(dpred, aes(Yreal, Ypredict))+
     geom_point(size=1.5, colour="black", shape=21) + 
-    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""))+
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""), size = 8)+
     labs(x = "pMIC", y = "Predicted pMIC") +
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
@@ -835,11 +835,11 @@ RFregCV = function(lfolds, ntree, mtry, dcluster, prout){
   
   p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
     geom_point(size=1.5, colour="black", shape=21) + 
-    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""))+
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(valr2,2), sep = ""), size = 8)+
     labs(x = "pMIC", y = "Predicted pMIC") +
     geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
     labs(x = "Real pMIC", y = "Predict pMIC") + 
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
@@ -932,10 +932,10 @@ RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   
   p = ggplot(dpred, aes(Yreal, Ypredict))+
     geom_point(size=1.5, colour="black", shape=21) + 
-    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""))+
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""), size = 8)+
     labs(x = "pMIC", y = "Predicted pMIC") +
     xlim (c(-2.5, 2.5)) +
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
   #print(p)
@@ -952,11 +952,11 @@ RFreg = function (dtrain, dtest, ntree, mtry, dcluster, prout){
   
   p = ggplot(dpred, aes(Yreal, Ypredict, label=rownames(dpred)))+
     geom_point(size=1.5, colour="black", shape=21) + 
-    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""))+
+    geom_text(x=-2.1, y=2.2, label = paste("R2=",round(r2test,2), sep = ""), size = 8)+
     labs(x = "pMIC", y = "Predicted pMIC") +
     geom_text(size = 2.6, aes(label= paste(rownames(dpred), "^(", Vcluster, ")", sep = "")), parse = TRUE, color="black", nudge_y = 0.06) + 
     labs(x = "Real pMIC", y = "Predict pMIC") + 
-    theme(axis.text.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 15, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 15, hjust = 0.5, vjust =0.1))+
+    theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
     xlim (c(-2.5, 2.5)) +
     geom_segment(aes(x = -2.5, y = -2.5, xend = 2.5, yend = 2.5), linetype=2, size = 0.1) + 
     ylim (c(-2.5, 2.5)) 
