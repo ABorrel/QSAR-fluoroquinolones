@@ -24,18 +24,18 @@ circularDendo = as.integer(args[10])
 optimal_clustering = as.integer(args[11])
 
 
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-#pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
+pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
+pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
+prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
 
-#plotPCA = 1
-#corMatrix = 1
-#histplot = 1
-#circularDendo = 1
-#valcor = 0.80
-#maxQuantile = 85
-#logaff = 1
-#optimal_clustering = 1
+plotPCA = 1
+corMatrix = 1
+histplot = 1
+circularDendo = 0
+valcor = 0.80
+maxQuantile = 85
+logaff = 1
+optimal_clustering = 1
 
 
 # Process descriptors matrix #

@@ -18,14 +18,14 @@ maxQuantile = as.double(args[6])
 logaff = as.integer(args[7])
 
 
-pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-paff = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
+#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
+#paff = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
+#pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
+#prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
 
-valcor = 0.80
-maxQuantile = 85
-logaff = 1
+#valcor = 0.80
+#maxQuantile = 85
+#logaff = 1
 
 
 ##############################
