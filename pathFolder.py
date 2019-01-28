@@ -1,11 +1,11 @@
 from os import listdir, remove, makedirs
 
-PR_REF = "/home/aborrel/fluoroquinolones/"
-PR_RESULT = "/home/aborrel/fluoroquinolones/results/"
-PR_TEMP3D = "/home/aborrel/fluoroquinolones/results/temp3D/"
-PR_COMPOUNDS = "/home/aborrel/fluoroquinolones/results/compounds/"
-PR_ANALYSIS = "/home/aborrel/fluoroquinolones/results/analysis/"
-PR_DESC = "/home/aborrel/fluoroquinolones/results/desc/"
+PR_REF = "/home/borrela2/fluoroquinolones/"
+PR_RESULT = "/home/borrela2/fluoroquinolones/results/"
+PR_TEMP3D = "/home/borrela2/fluoroquinolones/results/temp3D/"
+PR_COMPOUNDS = "/home/borrela2/fluoroquinolones/results/compounds/"
+PR_ANALYSIS = "/home/borrela2/fluoroquinolones/results/analysis/"
+PR_DESC = "/home/borrela2/fluoroquinolones/results/desc/"
 
 
 

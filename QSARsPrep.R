@@ -16,9 +16,9 @@ maxquantile = args[5]
 proptraintest = args[6]
 logaff = args[7]
 
-pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-prout = "/home/aborrel/fluoroquinolones/results/QSARS/"
+#pdesc = "/home/borrela2/fluoroquinolones/results/desc/desc_compound.csv"
+#pdata = "/home/borrela2/fluoroquinolones/MIC_currated.csv"
+#prout = "/home/borrela2/fluoroquinolones/results/QSARS/"
 
 
 valcor = 0.8
@@ -53,7 +53,7 @@ print(paste("Data after filtering: dim = ", dim(dglobal)[1], dim(dglobal)[2], se
 # order with affinity #
 #######################
 # Opening
-daffinity = read.csv(pdata, sep = ",", header = TRUE)
+daffinity = read.csv(paff, sep = ",", header = TRUE)
 rownames(daffinity) = daffinity[,1]
 daffinity = daffinity[,-1]
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(ggplot2)
-
+require(plotrix)
 
 radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NULL, 
                         radlab = TRUE, start = 0, clockwise = FALSE, rp.type = "r", 
@@ -234,12 +234,13 @@ radial.plot = function (lengths, radial.pos = NULL, labels = NA, label.pos = NUL
 
 args = commandArgs(TRUE)
 pMIC = args[1]
+prout = args[2]
 
-pMIC = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-prout = "/home/aborrel/fluoroquinolones/results/MIC/"
+#pMIC = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
+#prout = "/home/borrela2/fluoroquinolones/results/MIC/"
 
-dMIC = read.csv(pMIC, header = TRUE)
-print (dMIC)
+dMIC = read.csv(pMIC, header = TRUE, sep = "\t")
+#print (dMIC)
 dMIC = dMIC[order(dMIC[,2]),]
 
 
@@ -276,7 +277,7 @@ for(orga in colnames(dMIC)[-1]){
   par(mar=c(0,0,0,0))
   dplot = abs(dM-dlog[,orga])
   names(dplot) = rownames(dlog)
-  dplot = dplot[which(dplot >= 1.5)]
+  #dplot = dplot[which(dplot >= 1)] # most active only
   radial.plot(dplot, labels=names(dplot),rp.type="p",main="", line.col="black", mar=c(25,25,25,25), cex.lab = 0.5, radial.lim=c(0,3))
   
   dev.off()

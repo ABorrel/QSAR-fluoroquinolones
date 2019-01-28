@@ -24,18 +24,18 @@ circularDendo = as.integer(args[10])
 optimal_clustering = as.integer(args[11])
 
 
-pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-pdata = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-prout = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/"
+pdesc = "/home/borrela2/fluoroquinolones/results/desc/desc_compound.csv"
+pdata = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
+prout = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.85/"
 
 plotPCA = 1
 corMatrix = 1
-histplot = 1
+histplot = 0
 circularDendo = 0
-valcor = 0.80
+valcor = 0.85
 maxQuantile = 85
 logaff = 1
-optimal_clustering = 1
+optimal_clustering = 0
 
 
 # Process descriptors matrix #
@@ -54,7 +54,7 @@ dglobal = delnohomogeniousdistribution(dglobal, maxQuantile)
 # order with affinity #
 #######################
 # Opening
-daffinity = read.csv(pdata, sep = ",", header = TRUE)
+daffinity = read.csv(pdata, sep = "\t", header = TRUE)
 rownames(daffinity) = daffinity[,1]
 daffinity = daffinity[,-1]
 print(dim(daffinity))
@@ -151,7 +151,9 @@ if (optimal_clustering ==1 ){
     }
     for (metagregation in lmetagregation){
       for(metoptimal in lmetoptimal){
-        dclust = optimalCluters(dglobal, prout, metclustering, metoptimal, metagregation)
+        pclust = paste(prout, "/", metclustering, "-", metagregation, "-", metoptimal, "/", sep = "")
+        dir.create(pclust)
+        dclust = optimalCluters(dglobal, pclust, metclustering, metoptimal, metagregation)
         print(dim(dclust))
         dMCluster = NULL
         lclust = unique(dclust[,2])
@@ -173,7 +175,7 @@ if (optimal_clustering ==1 ){
         }
         lbact = colnames(daffinity)
         colnames(dMCluster) = c("cluster", paste("M_", lbact[1], sep = ""),  paste("SD_", lbact[1], sep = ""),  paste("M_", lbact[2], sep = ""),  paste("SD_", lbact[2], sep = ""), paste("M_", lbact[3], sep = ""),  paste("SD_", lbact[3], sep = ""),  paste("M_", lbact[4], sep = ""),  paste("SD_", lbact[4], sep = ""))
-        write.csv(dMCluster, paste(prout, "Mclusters_", metclustering, metoptimal, metagregation, ".csv", sep = ""))
+        write.csv(dMCluster, paste(pclust, "Mclusters_", metclustering, metoptimal, metagregation, ".csv", sep = ""))
       }
     }
   }

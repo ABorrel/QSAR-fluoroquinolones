@@ -3,6 +3,8 @@ from numpy import mean, std
 
 import runExternalSoft
 import toolbox
+import pathFolder
+import liganddescriptors
 
 class CHEMBL:
     def __init__(self, pfilin):
@@ -419,7 +421,7 @@ class CHEMBL:
             i += 1
         filout.close()
         filoutassay.close()
-        runExternalSoft.plotMICByCpd(pfilout)
+        runExternalSoft.plotMICByCpd(pfilout, pathFolder.createFolder(prout + "MIC/"))
 
 
 
@@ -437,5 +439,33 @@ class CHEMBL:
         filout.close()
 
 
+
+    def checkIdenticSMIonFullMatrix(self):
+
+        if not "tableorgafull" in self.__dict__:
+            return
+
+        k1 = self.tableorgafull.keys()[0]
+
+        lsmi = []
+        i = 0
+        imax = len(self.tableorgafull[k1])
+        while i < imax:
+            smi = self.tableorgafull[k1][i]["CANONICAL_SMILES"]
+            smiclean = liganddescriptors.standardizeSMILES(smi)
+            print "***", i, smiclean, imax, "***"
+            if smiclean == 1:
+                i += 1
+                continue
+
+            if not smiclean in lsmi:
+                lsmi.append(smiclean)
+            else:
+                for k in self.tableorgafull.keys():
+                    del self.tableorgafull[k][i]
+                imax = imax - 1
+                continue
+
+            i += 1
 
 

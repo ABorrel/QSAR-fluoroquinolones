@@ -15,9 +15,11 @@ class sdf:
 
         filin = open(self.psdf, "r")
         handle_read = filin.read()
-        # print handle_read
+        print handle_read
 
         l_compound = handle_read.split("$$$$\n")[:-1]
+        print l_compound
+        ddd
 
         for compound in l_compound:
             dcompound = {}

@@ -17,11 +17,12 @@ valcor = as.double(args[5])
 maxQuantile = as.double(args[6])
 logaff = as.integer(args[7])
 
+#pdesc = "/home/borrela2/fluoroquinolones/results/desc/desc_compound.csv"
+#paff = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
+#pcluster = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
+#prout = "/home/borrela2/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
 
-#pdesc = "/home/aborrel/fluoroquinolones/results/desc/desc_compound.csv"
-#paff = "/home/aborrel/fluoroquinolones/MIC_currated.csv"
-#pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
+
 
 #valcor = 0.80
 #maxQuantile = 85
@@ -45,7 +46,7 @@ dglobal = delnohomogeniousdistribution(dglobal, maxQuantile)
 # Affinity Matrix #
 ###################
 # Opening
-daffinity = read.csv(paff, sep = ",", header = TRUE)
+daffinity = read.csv(paff, sep = "\t", header = TRUE)
 rownames(daffinity) = daffinity[,1]
 daffinity = daffinity[,-1]
 print(dim(daffinity))
@@ -78,7 +79,7 @@ print (dim(daffinity))
 # dendogram cluster #
 #####################
 
-#dendogramCluster(dglobal, daffinity, dcluster, prout)
+dendogramCluster(dglobal, daffinity, dcluster, prout)
 
 
 # radial plot by cluster #

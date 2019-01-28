@@ -10,8 +10,8 @@ multipleHist = function(d, prout){
                      binwidth=.5,
                      colour="black", fill="white") +
     labs(x = "pMIC", y = "Frequencies") + 
-  xlim (c(-2.5, 2.5))+
-    ylim(c(0, 0.65))+
+  xlim (c(3, 9))+
+    #ylim(c(0, 0.70))+
     theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#FF6666")
   ggsave(paste(prout, "Pseudomonas-aeruginosa.png", sep = ""), dpi = 300, width = 8, height = 7)
@@ -21,7 +21,7 @@ multipleHist = function(d, prout){
                      binwidth=.5, 
                      colour="black", fill="white") +
     labs(x = "pMIC", y = "Frequencies") + 
-  xlim (c(-2.5, 2.5))+
+  xlim (c(3, 9))+
     ylim(c(0, 0.65))+
     theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#A5FFB3")
@@ -32,7 +32,7 @@ multipleHist = function(d, prout){
                      binwidth=.5,
                      colour="black", fill="white") +
     labs(x = "pMIC", y = "Frequencies") + 
-  xlim (c(-2.5, 2.5))+
+  xlim (c(3, 9))+
     ylim(c(0, 0.65))+
     theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#FAFFA5")
@@ -43,7 +43,7 @@ multipleHist = function(d, prout){
                      binwidth=.5,
                      colour="black", fill="white") +
     labs(x = "pMIC", y = "Frequencies") + 
-  xlim (c(-2.5, 2.5))+
+  xlim (c(3, 9))+
     ylim(c(0, 0.65))+
     theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
       geom_density(alpha=.2, fill="#BAA5FF")

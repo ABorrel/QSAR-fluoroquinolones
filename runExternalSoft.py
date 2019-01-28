@@ -1,5 +1,4 @@
-from os import system, path, remove, listdir
-from pymol.gui import cmd
+from os import system, path, remove, listdir, getcwd, chdir
 from re import search
 from time import sleep
 
@@ -107,24 +106,28 @@ def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, loga
     system(cmdClusterAnalysis)
 
 
-def plotMICByCpd(pfilin):
+def plotMICByCpd(pfilin, pfilout):
 
-    cmdplot = "./plotMIC.R " + str(pfilin)
+    cmdplot = "./plotMIC.R " + str(pfilin) + " " + pfilout
     print cmdplot
     system(cmdplot)
 
 
 
-def babelConvertSMItoSDF(pfilesmi):
+def babelConvertSMItoSDF(pfilesmi, H=0):
 
-    cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf 2>/dev/null"
+    if H ==1:
+        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf -h --gen2d 2>/dev/null"
+    else:
+        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf --gen2d 2>/dev/null"
+
     system(cmd_convert)
     return pfilesmi[0:-4] + ".sdf"
 
 
 def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
 
-    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perfRF.txt"
+    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perf.txt"
     print cmd_QSAR
     system(cmd_QSAR)
 
@@ -148,35 +151,52 @@ def corAnalysis(paffinity_currated, prcorAnalysis):
     system(cmd)
 
 
-def prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit, logaff=1):
+##################
+# QSAR modeling  #
+##################
 
+
+def runRQSARModeling(cmd):
+
+    workdir = getcwd()
+    chdir("/home/borrela2/development/QSARPR/source/")
+    print(cmd)
+    system(cmd)
+    chdir(workdir)
+
+
+
+def prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit, typeAff="All", logaff=1, nbNA = 10):
 
     # extract train and test file
     dfile = {}
     lfile = listdir(prout)
     for filedir in lfile:
-        if search("^train_", filedir):
-            bacteria = filedir.split("_")[-1][0:-4]
+        if search("trainSet", filedir):
+            bacteria = filedir.split("_")[0]
             if not bacteria in dfile.keys():
                 dfile[bacteria] = {}
             dfile[bacteria]["train"] = prout + filedir
 
-        elif search("^test_", filedir):
-            bacteria = filedir.split("_")[-1][0:-4]
+        elif search("testSet", filedir):
+            bacteria = filedir.split("_")[0]
             if not bacteria in dfile.keys():
                 dfile[bacteria] = {}
             dfile[bacteria]["test"] = prout + filedir
 
     if dfile == {}:
-        cmd = "/QSARsPrep.R " + str(pdesc) + " " + str(paff) + " " + prout + " " + str(corcoef) + " " + str(
-            maxQuantile) + " " + str(valSplit) + " " + str(logaff)
-        print cmd
-        system(cmd)
-        return prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit)
+        cmd = "./QSARsPrep.R " + str(pdesc) + " " + str(paff) + " " + prout + " " + str(corcoef) + " " + str(
+            maxQuantile) + " " + str(valSplit) + " " + str(logaff) + " " + str(typeAff) + " " + str(nbNA)
+        runRQSARModeling(cmd)
+        return prepareDataset(pdesc, paff, prout, corcoef, maxQuantile, valSplit, typeAff, logaff, nbNA)
     else:
         return dfile
 
 
 
+def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
 
+    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " 1 >" + prout + "perf.txt"
+    runRQSARModeling(cmd_QSAR)
 
+    return prout + "perf.txt"

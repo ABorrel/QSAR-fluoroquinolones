@@ -12,8 +12,8 @@ pMIC = args[2] #to take affinity
 prout = args[3]
 
 
-pcluster = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-pMIC = "/home/borrela2/fluoroquinolones/results/MIC-full"
+pcluster = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.85/hclust-ward.D2-gap_stat/Table_hclust_ward.D2_gap_stat.csv"
+pMIC = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
 prout = "/home/borrela2/fluoroquinolones/results/"
 
 

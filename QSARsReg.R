@@ -21,10 +21,10 @@ prout = args[4]
 nbCV = as.integer(args[5])
 
 # to test
-#ptrain = "/home/aborrel/fluoroquinolones/results/QSARS/train_Pseudomonas.aeruginosa.csv"
-#ptest = "/home/aborrel/fluoroquinolones/results/QSARS/test_Pseudomonas.aeruginosa.csv"
-#pcluster = "/home/aborrel/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-#prout = "/home/aborrel/fluoroquinolones/results/QSARS/Pseudomonas.aeruginosa/"
+#ptrain = "/home/borrela2/fluoroquinolones/results/QSARS/train_Pseudomonas.aeruginosa.csv"
+#ptest = "/home/borrela2/fluoroquinolones/results/QSARS/test_Pseudomonas.aeruginosa.csv"
+#pcluster = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
+#prout = "/home/borrela2/fluoroquinolones/results/QSARS/Pseudomonas.aeruginosa/"
 
 # cross validation 10
 #nbCV = 10
@@ -32,11 +32,11 @@ nbCV = as.integer(args[5])
 
 # model regression #
 ####################
-modelPCRreg = 0
-modelPLSreg = 0
-modelSVMreg = 0
+modelPCRreg = 1
+modelPLSreg = 1
+modelSVMreg = 1
 modelRFreg = 1
-modelCartreg = 0
+modelCartreg = 1
 chemmodlabreg = 0
 
 
