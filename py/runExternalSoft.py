@@ -4,6 +4,7 @@ from time import sleep
 
 LIGPREP = "/opt/schrodinger2016-4/ligprep"
 PADEL = "/home/aborrel/softwares/padel/PaDEL-Descriptor.jar"
+PRSCRIPT = "./../R/"
 
 
 def runLigprep(psmilin, forcefield="OPLS3", stereoisoster=1):
@@ -77,6 +78,19 @@ def babelConvertSDFtoSMILE(sdfread, clean_smi=0, rm_smi=1):
 
 
 
+def runRscript(cmd, out=0):
+
+    chdir("./../R/")
+    print cmd
+    if out == 0:
+        #system(cmd)  ####### to run
+        output = 0
+    else:
+        import subprocess
+        #output = subprocess.check_output(cmd, shell=True)  ####### to run
+    chdir("./../py/")
+    return output
+
 def PCAplot(pfildesc, pfildata, corcoef, prout):
 
     cmdplotPCA = "./PCAplot.R " + str(pfildesc) + " " + str(pfildata) + " " + str(corcoef) + " " + str(prout)
@@ -93,8 +107,7 @@ def DescAnalysis(pdesc, paffinity, prout, valcor, maxquantile, logaff, PCA, corM
         str(maxquantile) + " " + str(logaff) + " " + str(PCA) + " " + str(corMatrix) + " " + str(hist) + \
         " " + str(dendo) + " " + str(cluster)
 
-    print cmdDescAnalysis
-    system(cmdDescAnalysis)
+    runRscript(cmdDescAnalysis)
 
 
 def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff=1):
@@ -110,7 +123,7 @@ def plotMICByCpd(pfilin, pfilout):
 
     cmdplot = "./plotMIC.R " + str(pfilin) + " " + pfilout
     print cmdplot
-    system(cmdplot)
+    runRscript(cmdplot)
 
 
 
@@ -135,20 +148,20 @@ def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
 
 
 
-def molconvert(pfilin):
+def molconvert(p_smi, p_png):
 
-    if path.exists(pfilin[:-3] + "jpeg"):
-        return pfilin[:-3] + "jpeg"
-    cmdconvert = "molconvert \"jpeg:w500,Q95,#ffffff\" " + pfilin + " -o " + pfilin[:-3] + "jpeg"
+    if path.exists(p_png):
+        return p_png
+    cmdconvert = "molconvert \"jpeg:w500,Q95,#ffffff\" " + p_smi + " -o " + p_png
+    print cmdconvert
     system(cmdconvert)
 
 
 
 def corAnalysis(paffinity_currated, prcorAnalysis):
 
-    cmd = "./corMIC.R " + str(paffinity_currated) + " " + str(prcorAnalysis)
-    print cmd
-    system(cmd)
+    cmd = "./corBetweenMIC.R " + str(paffinity_currated) + " " + str(prcorAnalysis)
+    runRscript(cmd)
 
 
 ##################

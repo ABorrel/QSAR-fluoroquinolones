@@ -1,12 +1,13 @@
 from copy import deepcopy
 from numpy import mean, std
+from os import path
 
 import runExternalSoft
 import toolbox
 import pathFolder
 import liganddescriptors
 
-class CHEMBL:
+class CHEMBLTable:
     def __init__(self, pfilin):
         self.pfilin = pfilin
 
@@ -20,12 +21,13 @@ class CHEMBL:
 
         #lhead = llines[0].split("\t")[0:-1] CHECK WHY -1
         lhead = llines[0].strip().split("\t")
-        print lhead
+        #print lhead
 
         i = 1
-        while i < len(llines):
-            lelem = llines[i].split("\t")
-            #print lelem, i
+        imax = len(llines)
+        while i < imax:
+            line_temp = toolbox.formatLineDataset(llines[i])
+            lelem = line_temp.split("\t")
             #print len(lelem), len(lhead), "***"
             #print lelem
             dout = {}
@@ -38,6 +40,34 @@ class CHEMBL:
 
         self.table = lout
 
+    def parseCuratedDataset(self, pr_in):
+
+        p_dataset_MIC = pr_in + "MIC-curated_mol.csv"
+        # control the file with dataset excite
+        if not path.exists(p_dataset_MIC):
+            return 1
+        else:
+            self.pMIC = p_dataset_MIC
+
+        # load in tableorgafull
+        l_dchem = toolbox.tableTolist(p_dataset_MIC)
+        l_orga = l_dchem[0].keys()
+        l_orga.remove("CMPD_CHEMBLID")
+        l_orga.remove("SMILES")
+
+        dout = {}
+        for orga in l_orga:
+            # load chem by orga
+            p_orga = pr_in + orga + ".csv"
+            dorga = toolbox.loadMatrix(p_orga)
+
+            dout[orga] = dorga
+            for dchem in l_dchem:
+                chemID = dchem["CMPD_CHEMBLID"]
+                dout[orga][chemID]["pMIC"] = dchem[orga]
+                dout[orga][chemID]["SMILES"] = dchem["SMILES"]
+        
+        self.tableorgafull = dout
 
 
     def getOnlyExactConstant(self, MIC=1):
@@ -45,7 +75,6 @@ class CHEMBL:
 
         if not "table" in dir(self):
             self.parseCHEMBLFile()
-
 
         i = 0
         imax = len(self.table)
@@ -321,7 +350,7 @@ class CHEMBL:
         self.tablebyorga = dformat
 
 
-    def completeMatrixMICByorganism(self, prout, nborga=3):
+    def completeMatrixMICByorganism(self, nborga=3):
 
         if not "tablebyorga" in dir(self):
             self.MICbyOrganisms()
@@ -353,11 +382,12 @@ class CHEMBL:
 
         dout = {}
         for orga in self.tablebyorga.keys():
-            pfilout = prout + str(orga.replace(" ", "-")) + ".csv"
-            filout = open(pfilout, "w")
-            lheader = ["CMPD_CHEMBLID", "STANDARD_VALUE"]
-            print lheader
-            filout.write("\t".join(lheader) + "\n")
+            # no interest to write MIC at this step
+            #pfilout = prout + str(orga.replace(" ", "-")) + ".csv"
+            #filout = open(pfilout, "w")
+            #lheader = ["CMPD_CHEMBLID", "STANDARD_VALUE"]
+            #print lheader
+            #filout.write("\t".join(lheader) + "\n")
 
             if not orga in dout.keys():
                 dout[orga] = []
@@ -382,53 +412,22 @@ class CHEMBL:
                 else:
                     compoundtemp = ltemp[0]
                 dout[orga].append(compoundtemp)
-                filout.write("\t".join(str(compoundtemp[k]) for k in lheader) + "\n")
-            filout.close()
+                #filout.write("\t".join(str(compoundtemp[k]) for k in lheader) + "\n")
+            #filout.close()
 
         self.tableorgafull = dout
 
 
 
-    def compareMICorga(self, prout):
+    def plotMIC_byorga(self, prout):
 
         if not "tableorgafull" in dir(self):
             print "ERROR INPUT - tableorgafull"
 
-        lorga = self.tableorgafull.keys()
-        pfilout = prout + "MIC-full"
-        filout = open(pfilout, "w")
-        filout.write("CMPD_CHEMBLID\t" + "\t".join(lorga) + "\n")
-
-        pfiloutAssay = prout + "MIC-full_assay"
-        filoutassay = open(pfiloutAssay, "w")
-        filoutassay.write("CMPD_CHEMBLID\t" + "\t".join(lorga) + "\n")
-
-        nbComp = len(self.tableorgafull[lorga[0]])
-        i = 0
-        while i < nbComp:
-            nameCpd = self.tableorgafull[lorga[0]][i]["CMPD_CHEMBLID"]
-            filout.write(nameCpd + "\t" + str(self.tableorgafull[lorga[0]][i]["STANDARD_VALUE"]))
-            filoutassay.write(nameCpd + "\t" + str(self.tableorgafull[lorga[0]][i]["ASSAY_CHEMBLID"]))
-
-            for orga in lorga[1:]:
-                for cpd in self.tableorgafull[orga]:
-                    if cpd["CMPD_CHEMBLID"] == nameCpd:
-                        filout.write("\t" + str(cpd["STANDARD_VALUE"]))
-                        filoutassay.write("\t" + str(cpd["ASSAY_CHEMBLID"]))
-                        break
-            filout.write("\n")
-            filoutassay.write("\n")
-            i += 1
-        filout.close()
-        filoutassay.close()
-        runExternalSoft.plotMICByCpd(pfilout, pathFolder.createFolder(prout + "MIC/"))
-
-
+        runExternalSoft.plotMICByCpd(self.pMIC, pathFolder.createFolder(prout))
+        
 
     def writeTable(self, pfilout):
-
-        print len(self.table)
-        print self.table[0]
 
         filout = open(pfilout, "w")
         lheader = self.table[0].keys()
@@ -453,6 +452,7 @@ class CHEMBL:
         while i < imax:
             smi = self.tableorgafull[k1][i]["CANONICAL_SMILES"]
             smiclean = liganddescriptors.standardizeSMILES(smi)
+            self.tableorgafull[k1][i]["SMILES_PREP"] = smiclean
             print "***", i, smiclean, imax, "***"
             if smiclean == 1:
                 i += 1
@@ -469,3 +469,43 @@ class CHEMBL:
             i += 1
 
 
+    def writeByOrganism(self, pr_out):
+
+        lcol_select = ["CMPD_CHEMBLID", "CANONICAL_SMILES", "STANDARD_VALUE", "PUBLISHED_UNITS", "STANDARD_TYPE", "CURATED_BY", "ASSAY_ID", "ASSAY_TYPE", "ASSAY_ORGANISM", "ASSAY_SRC_DESCRIPTION", "ASSAY_CHEMBLID", "DOC_ID", "BAO_FORMAT", "BAO_ENDPOINT"]
+
+        for org in self.tableorgafull.keys():
+            pfilout = pr_out + org + ".csv"
+            filout = open(pfilout, "w")
+            filout.write("\t".join(lcol_select) + "\n")
+            for chem in self.tableorgafull[org]:
+                lw = [str(chem[h]) for h in lcol_select]
+                filout.write("\t".join(lw) + "\n")
+            filout.close()
+    
+
+    
+    def convertUgmLtoMol(self, p_filout):
+
+        lorga = self.tableorgafull.keys()
+        dw = {}
+        for orga in self.tableorgafull.keys():
+            dw[orga] = {}
+            for chem in self.tableorgafull[orga]:
+                chemblID = chem["CMPD_CHEMBLID"]
+                print chemblID
+                print chem["STANDARD_VALUE"], "MIC"
+                print chem["PUBLISHED_UNITS"], "unit"
+                print chem["MOLWEIGHT"], "weight"
+                
+                MIC_M =  (float(chem["STANDARD_VALUE"]) / 1000)/ float( chem["MOLWEIGHT"])
+                chem["MIC_M"] = str(MIC_M)
+                dw[orga][chemblID] = chem
+                
+        
+        filout = open(p_filout, "w")
+        filout.write("CMPD_CHEMBLID\tSMILES\t" + "\t".join(lorga) + "\n")
+        
+        lchemID = dw[lorga[0]].keys()
+        for chemID in lchemID:
+            filout.write("%s\t%s\t%s\n"%(chemID, dw[lorga[0]][chemID]["SMILES_PREP"] ,"\t".join([dw[orga][chemID]["MIC_M"] for orga in lorga])))
+        filout.close()

@@ -7,16 +7,20 @@ Scripts developed to compute:
 
 # Dependancy
 - Python 2.7.X
-- RDKIT for python 2.7 (package python-rdkit) with rdkit-data
-- python-pip, version for python 2.7
-- pydpi (https://pypi.org/project/pydpi/), $pip install pydpi
-- scipy (https://pypi.org/project/scipy/), $pip install scipy
-- molvs (https://pypi.org/project/MolVS/), $pip install molVS
-- Pillow (https://docs.plone.org/3/en/develop/plone/images/pil.html), $pip install pillow
-- Schrodinger (>2018-4): Glide and GDescmond module
+    - RDKIT for python 2.7 (package python-rdkit) with rdkit-data
+    - python-pip, version for python 2.7
+    - pydpi (https://pypi.org/project/pydpi/), $pip install pydpi
+    - scipy (https://pypi.org/project/scipy/), $pip install scipy
+    - molvs (https://pypi.org/project/MolVS/), $pip install molVS
+    - Pillow (https://docs.plone.org/3/en/develop/plone/images/pil.html), $pip install pillow
 - open babel
 - molconvert
-- TMalign
+- R > 3.5
+    - ggtree (install.packages("BiocManager"); BiocManager::install("ggtree"))
+    - RootsExtremaInflections
+    - factoextra
+    - phangorn
+    - ape
 
 # organisation
 

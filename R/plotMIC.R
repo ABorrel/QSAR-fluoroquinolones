@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-
 library(ggplot2)
 require(plotrix)
 
@@ -236,10 +235,12 @@ args = commandArgs(TRUE)
 pMIC = args[1]
 prout = args[2]
 
-#pMIC = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
-#prout = "/home/borrela2/fluoroquinolones/results/MIC/"
+pMIC = "./../../results/dataset/MIC-curated_mol.csv"
+prout = "./../../results/dataset/analysis/"
 
 dMIC = read.csv(pMIC, header = TRUE, sep = "\t")
+rownames(dMIC) = dMIC[,1]
+dMIC = dMIC[,-which(colnames(dMIC) == "SMILES")]
 #print (dMIC)
 dMIC = dMIC[order(dMIC[,2]),]
 

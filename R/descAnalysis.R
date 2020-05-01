@@ -24,18 +24,18 @@ circularDendo = as.integer(args[10])
 optimal_clustering = as.integer(args[11])
 
 
-pdesc = "/home/borrela2/fluoroquinolones/results/desc/desc_compound.csv"
-pdata = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
-prout = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.85/"
+#pdesc = "./../../results/DESC/desc_compound.csv"
+#pdata = "./../../results/dataset/MIC-curated_mol.csv"
+#prout = "./../../results/Clustering-0.85-85/"
 
-plotPCA = 1
-corMatrix = 1
-histplot = 0
-circularDendo = 0
-valcor = 0.85
-maxQuantile = 85
-logaff = 1
-optimal_clustering = 0
+#plotPCA = 0
+#corMatrix = 0
+#histplot = 0
+#circularDendo = 1
+#valcor = 0.85
+#maxQuantile = 85
+#logaff = 1
+#optimal_clustering = 1
 
 
 # Process descriptors matrix #
@@ -57,6 +57,7 @@ dglobal = delnohomogeniousdistribution(dglobal, maxQuantile)
 daffinity = read.csv(pdata, sep = "\t", header = TRUE)
 rownames(daffinity) = daffinity[,1]
 daffinity = daffinity[,-1]
+daffinity = daffinity[,-which(colnames(daffinity) == "SMILES")] # remove SMILES 
 print(dim(daffinity))
 
 

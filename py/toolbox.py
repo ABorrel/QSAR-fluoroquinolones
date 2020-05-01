@@ -15,6 +15,8 @@ def mergeDict(l_dict):
         if lval.count(lval[0]) == len(lval):
             dout[k] = lval[0]
         else:
+            # remove duplicate
+            lval = list(dict.fromkeys(lval))
             dout[k] = "----".join(lval)
 
     return dout
@@ -148,46 +150,6 @@ def formatClusterTable(pfileCluster):
 
 
 
-
-def convertUgLtoMol(pMIC, dChEMBL, pfilout):
-
-    if path.exists(pfilout):
-        return pfilout
-
-    filout = open(pfilout, "w")
-
-    filinMIC = open(pMIC, "r")
-    llineMIC = filinMIC.readlines()
-    filinMIC.close()
-
-    filout.write("\t".join(llineMIC[0].strip().split(",")) + "\n")
-
-    for linechem in llineMIC[1:]:
-        lMIC = linechem.strip().split("\t")
-        CHEMBLid = lMIC[0]
-        print CHEMBLid
-        filout.write(CHEMBLid)
-        molWeight = 0.0
-        for dchem in dChEMBL.table:
-            if CHEMBLid == dchem["CMPD_CHEMBLID"]:
-                molWeight = dchem["MOLWEIGHT"]
-                print molWeight
-                break
-
-        if molWeight == 0.0:
-            print "ERROR molweight"
-            return
-        else:
-            for MIC in lMIC[1:]:
-                molar = (float(MIC) / 1000)/ float(molWeight)
-                filout.write("\t" + str(molar))
-            filout.write("\n")
-
-    filout.close()
-
-
-
-
 def loadMatrix(pmatrixIn, sep = "\t"):
 
     filin = open(pmatrixIn, "r")
@@ -236,6 +198,31 @@ def loadMatrix(pmatrixIn, sep = "\t"):
 def formatLine(linein):
 
     linein = linein.strip()
+    linenew = ""
+
+    imax = len(linein)
+    i = 0
+    flagchar = 0
+    while i < imax:
+        if linein[i] == '"' and flagchar == 0:
+            flagchar = 1
+        elif linein[i] == '"' and flagchar == 1:
+            flagchar = 0
+
+        if flagchar == 1 and linein[i] == ",":
+            linenew = linenew + " "
+        else:
+            linenew = linenew + linein[i]
+        i += 1
+
+    linenew = linenew.replace('\"', "")
+    return linenew
+
+
+
+def formatLineDataset(linein):
+
+    linein = linein.replace("\n", "")
     linenew = ""
 
     imax = len(linein)

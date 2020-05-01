@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-source ("tool.R")
+source("tool.R")
 source("dendocircular.R")
 source("radialPlot.R")
 
