@@ -77,6 +77,43 @@ def babelConvertSDFtoSMILE(sdfread, clean_smi=0, rm_smi=1):
     return smile
 
 
+def babelConvertSMItoSDF(pfilesmi, H=0):
+
+    if H ==1:
+        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf -h --gen2d 2>/dev/null"
+    else:
+        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf --gen2d 2>/dev/null"
+
+    system(cmd_convert)
+    return pfilesmi[0:-4] + ".sdf"
+
+
+
+def molconvert(p_smi, p_png):
+
+    if path.exists(p_png):
+        return p_png
+    cmdconvert = "molconvert \"jpeg:w500,Q95,#ffffff\" " + p_smi + " -o " + p_png
+    print cmdconvert
+    system(cmdconvert)
+
+
+def pngtopdf(ppng):
+    cmd = "convert -quality 100 -density 50 " + ppng + " " + ppng[:-3] + "pdf"
+    print cmd
+    system(cmd)
+    return ppng[:-3] + "pdf"
+
+def mergepdfs(lpdfs, pout):
+
+    cmd = "pdfunite " + " ".join(lpdfs) + " " + pout
+    print cmd
+    system(cmd)
+
+
+#################
+# R scripts run #
+#################
 
 def runRscript(cmd, out=0):
 
@@ -91,18 +128,31 @@ def runRscript(cmd, out=0):
     chdir("./../py/")
     return output
 
+
+def corBypMICAnalysis(paffinity_currated, prcorAnalysis):
+    cmd = "./corBetweenMIC.R " + str(paffinity_currated) + " " + str(prcorAnalysis)
+    runRscript(cmd)
+
+
+def plotMICByCpd(pfilin, pfilout):
+    cmdplot = "./plotMIC.R " + str(pfilin) + " " + pfilout
+    print cmdplot
+    runRscript(cmdplot)
+
+
+def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff=1):
+    cmdClusterAnalysis = "./clusterAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(pcluster) + " " + \
+        str(prout) + " " + str(valcor) + " " + str(maxquantile) + " " + str(logaff)
+
+    runRscript(cmdClusterAnalysis)
+
+
 def PCAplot(pfildesc, pfildata, corcoef, prout):
-
     cmdplotPCA = "./PCAplot.R " + str(pfildesc) + " " + str(pfildata) + " " + str(corcoef) + " " + str(prout)
-
-    print cmdplotPCA
-    system(cmdplotPCA)
-
-    return
+    runRscript(cmdplotPCA)
 
 
 def DescAnalysis(pdesc, paffinity, prout, valcor, maxquantile, logaff, PCA, corMatrix, hist, dendo, cluster):
-
     cmdDescAnalysis = "./descAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(prout) + " " + str(valcor) + " " + \
         str(maxquantile) + " " + str(logaff) + " " + str(PCA) + " " + str(corMatrix) + " " + str(hist) + \
         " " + str(dendo) + " " + str(cluster)
@@ -110,64 +160,23 @@ def DescAnalysis(pdesc, paffinity, prout, valcor, maxquantile, logaff, PCA, corM
     runRscript(cmdDescAnalysis)
 
 
-def clusterAnalysis(pdesc, paffinity, pcluster, prout, valcor, maxquantile, logaff=1):
-
-    cmdClusterAnalysis = "./clusterAnalysis.R " + str(pdesc) + " " + str(paffinity) + " " + str(pcluster) + " " + \
-        str(prout) + " " + str(valcor) + " " + str(maxquantile) + " " + str(logaff)
-
-    print cmdClusterAnalysis
-    system(cmdClusterAnalysis)
-
-
-def plotMICByCpd(pfilin, pfilout):
-
-    cmdplot = "./plotMIC.R " + str(pfilin) + " " + pfilout
-    print cmdplot
-    runRscript(cmdplot)
-
-
-
-def babelConvertSMItoSDF(pfilesmi, H=0):
-
-    if H ==1:
-        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf -h --gen2d 2>/dev/null"
-    else:
-        cmd_convert = "babel " + pfilesmi + " " + pfilesmi[0:-4] + ".sdf --gen2d 2>/dev/null"
-
-    system(cmd_convert)
-    return pfilesmi[0:-4] + ".sdf"
-
-
-def QSARsReg(ptrain, ptest, pcluster, prout, nbfold=10):
-
-    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " >" + prout + "perf.txt"
-    print cmd_QSAR
-    system(cmd_QSAR)
-
-    return prout + "perf.txt"
-
-
-
-def molconvert(p_smi, p_png):
-
-    if path.exists(p_png):
-        return p_png
-    cmdconvert = "molconvert \"jpeg:w500,Q95,#ffffff\" " + p_smi + " -o " + p_png
-    print cmdconvert
-    system(cmdconvert)
-
-
-
-def corAnalysis(paffinity_currated, prcorAnalysis):
-
-    cmd = "./corBetweenMIC.R " + str(paffinity_currated) + " " + str(prcorAnalysis)
+def corDescVSpMIC(p_desc, p_currated_dataset, pr_out): 
+    cmd = "./corDESCvsPMIC.R %s %s %s"%(p_desc, p_currated_dataset, pr_out)
     runRscript(cmd)
 
+
+def signifDescByCluster(p_desc, p_cluster, pr_out):
+    cmd = "./SignifDescByCluster.R %s %s %s"%(p_desc, p_cluster, pr_out)
+    runRscript(cmd)
+
+
+def sumByCluster(p_cluster, p_dataset, pr_out):
+    cmd = "./summaryByCluster.R %s %s %s"%(p_cluster, p_dataset, pr_out)
+    runRscript(cmd)
 
 ##################
 # QSAR modeling  #
 ##################
-
 
 def runRQSARModeling(cmd):
 

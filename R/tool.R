@@ -244,8 +244,6 @@ conditionANOVA = function (d_in, class_name){
 
 # choice parametric or non parametric test comparison
 
-
-
 conditionTtest = function (data1, data2){
 
 	sd1 = sd (data1)

@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 source("tool.R")
+library(ggplot2)
 
 ################
 #     MAIN     #
@@ -52,4 +53,28 @@ colnames(m_out) = colnames(daffinity)
 m_out = round(m_out, 2)
 
 write.csv(m_out, file=paste(pr_out, "corDescVSpMIC.csv", sep = ""))
+
+# plot correlation #
+####################
+
+for(col_name in colnames(daffinity)){
+  for(desc in colnames(dglobal)){
+    dplot = cbind(daffinity[,col_name], dglobal[,desc])
+    colnames(dplot) = c("pMIC", "Desc")
+    dplot = as.data.frame(dplot)
+    
+    valr2 = cor(dplot[,1], dplot[,2])
+
+    p = ggplot(dplot, aes(pMIC, Desc))+
+      geom_point(size=1.5, colour="black", shape=21) + 
+      geom_text(x=7.5, y=min (dplot$Desc) + ((max(dplot$Desc) - min (dplot$Desc))*0.90), label = paste("R2=",round(valr2,2), sep = ""), size = 6)+
+      labs(x = "pMIC (mol/l)", y = desc)  +
+      theme(axis.text.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.text.x = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.y = element_text(size = 25, hjust = 0.5, vjust =0.1), axis.title.x =  element_text(size = 25, hjust = 0.5, vjust =0.1))+
+      xlim (c(3, 8))
+    ggsave(paste(pr_out, col_name, "_", desc, ".png", sep = ""), width = 6,height = 6, dpi = 300)    
+  }
+}
+
+
+
 

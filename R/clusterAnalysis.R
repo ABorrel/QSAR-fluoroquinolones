@@ -17,16 +17,13 @@ valcor = as.double(args[5])
 maxQuantile = as.double(args[6])
 logaff = as.integer(args[7])
 
-#pdesc = "/home/borrela2/fluoroquinolones/results/desc/desc_compound.csv"
-#paff = "/home/borrela2/fluoroquinolones/MIC_currated_Mol.csv"
-#pcluster = "/home/borrela2/fluoroquinolones/results/desc_analysis/0.8/Table_hclust_ward.D2_gap_stat.csv"
-#prout = "/home/borrela2/fluoroquinolones/results/CrossClusterAnalysis/hclust_ward.D2_gap_stat/"
-
-
-
-#valcor = 0.80
-#maxQuantile = 85
-#logaff = 1
+pdesc = "./../../results/DESC/desc_compound.csv" 
+paff = "./../../results/dataset/MIC-curated_mol.csv" 
+pcluster = "./../../results/Clustering_selected/hclust-ward.D2-gap_stat/Table_hclust_ward.D2_gap_stat.csv" 
+prout = "./../../results/Cluster_analysis-0.85-85/" 
+valcor = 0.85 
+maxQuantile = 85
+logaff = 1
 
 
 ##############################
@@ -49,6 +46,7 @@ dglobal = delnohomogeniousdistribution(dglobal, maxQuantile)
 daffinity = read.csv(paff, sep = "\t", header = TRUE)
 rownames(daffinity) = daffinity[,1]
 daffinity = daffinity[,-1]
+daffinity = daffinity[,-1] # remove SMILES too
 print(dim(daffinity))
 
 # transform
@@ -79,7 +77,7 @@ print (dim(daffinity))
 # dendogram cluster #
 #####################
 
-dendogramCluster(dglobal, daffinity, dcluster, prout)
+#dendogramCluster(dglobal, daffinity, dcluster, prout)
 
 
 # radial plot by cluster #
@@ -88,6 +86,10 @@ dendogramCluster(dglobal, daffinity, dcluster, prout)
 lcluster = unique(dcluster[,2])
 daffinity = daffinity[,c("Escherichia.coli", "Pseudomonas.aeruginosa",  "Staphylococcus.aureus" , "Streptococcus.pneumoniae")]
 for(cluster in lcluster){
-  dtemp = daffinity[which(dcluster[,2] == cluster),]
+  lichem = which(dcluster$cluster == cluster)
+  dtemp = daffinity[lichem,]
+  print("=========")
+  print(cluster)
+  print(apply(dtemp, 2, mean))
   radialByCluster(dtemp, paste(prout, cluster, ".svg", sep = ""))
 }

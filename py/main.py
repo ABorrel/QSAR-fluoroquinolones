@@ -2,14 +2,16 @@ from os import listdir, path, remove
 from shutil import copyfile
 #from math import log10
 
+import pathFolder
 import dataset # main functions to build the dataset
 import CHEMBLTable
 import compoundProcessing
 import runExternalSoft
-
+import rankingChem
+import activityCliff
 #import tableParse
 #import liganddescriptors
-import pathFolder
+
 #import runExternalSoft
 #import toolbox
 #import bycluster
@@ -55,39 +57,63 @@ maxQuantile = 85 # descriptor distribution in 85% on the same quantile
 pr_PCA = pathFolder.createFolder("%sPCA-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
 #runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=p_currated_dataset, prout=pr_PCA, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=1, corMatrix=0, hist=0, dendo=0, cluster=0) #used to find the different stable cluster
 
-# 4.2. correlation descriptor
-pr_COR_DESC = pathFolder.createFolder("%sCOR_DESC-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
+# 4.2. correlation inter desc image
+pr_COR_DESC = pathFolder.createFolder("%sCOR_INTERDESC-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
 #runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=p_currated_dataset, prout=pr_COR_DESC, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=0, corMatrix=1, hist=0, dendo=0, cluster=0) #used to find the different stable cluster
 
 # 4.3. clustering
 pr_cluster = pathFolder.createFolder("%sClustering-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
 #runExternalSoft.DescAnalysis(pdesc=pdesc, paffinity=p_currated_dataset, prout=pr_cluster, valcor=corcoef, maxquantile=maxQuantile, logaff=1, PCA=0, corMatrix=0, hist=0, dendo=0, cluster=1)
 
-# 4.4. select manually best clustering
-pr_cluster_selected = PR_RESULT + "Clustering_selected/"
+# 4.4. select manually best clustering -> added in data
+p_cluster_selected = PR_RESULT + "Clustering_selected/hclust-ward.D2-gap_stat/Table_hclust_ward.D2_gap_stat.csv"
 
 ################
 # 5. analysis pMIC and cluster
 
 # 5.1. Correaltion pMIC by organism
 pr_COR_MIC = pathFolder.createFolder("%sCOR_PMI/"%(PR_RESULT))
-runExternalSoft.corAnalysis(p_currated_dataset, pr_COR_MIC)
+#runExternalSoft.corBypMICAnalysis(p_currated_dataset, pr_COR_MIC)
 
 # 5.2. Correlation descriptors by pMIC
-
+pr_COR_descVSpMIC = pathFolder.createFolder("%sCOR_DESCvsPMIC/"%(PR_RESULT))
+#runExternalSoft.corDescVSpMIC(pdesc, p_currated_dataset, pr_COR_descVSpMIC)
 
 # 5.3. most significatif desc by cluster 
-p_cluster = ""
+pr_signifDesc_cluster = pathFolder.createFolder("%sSignifDesc_byCluster/"%(PR_RESULT))
+#runExternalSoft.signifDescByCluster(pdesc, p_cluster_selected, pr_signifDesc_cluster)
 
-# 5.4. Build pdf for pub with chem, cluster and pMIC
+# 5.4. chemical by cluster => radial plot
+pr_cluster_analysis = pathFolder.createFolder("%sCluster_analysis-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
+#runExternalSoft.clusterAnalysis(pdesc, p_currated_dataset, p_cluster_selected, pr_cluster_analysis, corcoef, maxQuantile, logaff=1)
 
+# 5.5. Build pdf for publication with chem, cluster and pMIC with rank
+pr_rank_chem = pathFolder.createFolder("%srank-chem/"%(PR_RESULT))
+#rankingChem.rank_chem(p_currated_dataset, p_cluster_selected, PR_RESULT + "PNG/", pr_rank_chem)
 
+# 5.6. Summary by cluster for MIC and cluster specificity
+pr_sum = pathFolder.createFolder("%sSumCluster-%s-%s/"%(PR_RESULT, corcoef, maxQuantile))
+#runExternalSoft.sumByCluster(p_cluster_selected, p_currated_dataset, pr_sum)
 
+######################
+# 6. Activity cliff -> using SALI software
+pr_activityCliff = pathFolder.createFolder(PR_RESULT + "SALI_activityCliff/")
+c_activityCliff = activityCliff.activityCliff(p_currated_dataset, p_cluster_selected, pr_activityCliff)
+c_activityCliff.loadData()
+#c_activityCliff.formatForSALI()
+# compute SALI from data warrior
+p_SALI_EC = pr_activityCliff + "AC_Ecoli.txt"
+p_SALI_PA = pr_activityCliff + "AC_Paeruginosa.txt"
+p_SALI_SA = pr_activityCliff + "AC_Saureus.txt"
+p_SALI_SP = pr_activityCliff + "AC_Spneumoniae.txt"
 
-
+c_activityCliff.filterSALIFile(2.0, p_SALI_EC)
+c_activityCliff.filterSALIFile(2.0, p_SALI_PA)
+c_activityCliff.filterSALIFile(2.0, p_SALI_SA)
+c_activityCliff.filterSALIFile(2.0, p_SALI_SP)
 
 ###############
-# 6. machine learning
+# 7. machine learning
 
 
 
